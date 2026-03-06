@@ -6,6 +6,7 @@
 <title>RF Passageiro</title>
 
 <style>
+
 :root{
   --rf-gold:#D6B85F;
   --rf-gold-strong:#F4D97A;
@@ -18,7 +19,7 @@
   font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
 }
 
-html, body{
+html,body{
   height:100%;
 }
 
@@ -33,7 +34,8 @@ body{
   animation:fadeIn .4s ease;
 }
 
-/* FUNDO ANIMADO ESTABILIZADO */
+/* FUNDO ROTATIVO */
+
 body::before{
   content:"";
   position:absolute;
@@ -53,6 +55,7 @@ body::before{
 }
 
 /* CONTAINER */
+
 .container{
   position:relative;
   text-align:center;
@@ -60,10 +63,11 @@ body::before{
 }
 
 /* RADAR */
+
 .radar{
   position:absolute;
-  width:260px;
-  height:260px;
+  width:300px;
+  height:300px;
   border-radius:50%;
   border:2px solid rgba(214,184,95,.4);
   left:50%;
@@ -81,18 +85,27 @@ body::before{
   animation:pulse 4s infinite;
 }
 
-.radar::after{animation-delay:2s;}
+.radar::after{
+  animation-delay:2s;
+}
 
 @keyframes pulse{
-  0%{transform:scale(.7);opacity:.8;}
-  100%{transform:scale(1.6);opacity:0;}
+  0%{
+    transform:scale(.7);
+    opacity:.8;
+  }
+  100%{
+    transform:scale(1.6);
+    opacity:0;
+  }
 }
 
 /* GLOW */
+
 .glow{
   position:absolute;
-  width:220px;
-  height:220px;
+  width:260px;
+  height:260px;
   border-radius:50%;
   background:radial-gradient(circle,var(--rf-gold),transparent 70%);
   filter:blur(60px);
@@ -109,13 +122,16 @@ body::before{
   50%{opacity:.6;}
 }
 
-/* LOGO – IMEDIATA */
+/* LOGO */
+
 .logo{
-  width:180px;
-  max-width:80%;
+  width:160px;
+  max-width:70%;
+  position:relative;
+  z-index:3;
   opacity:0;
-  transform:scale(.95);
-  animation:logoFast .3s ease forwards;
+  transform:scale(.85);
+  animation:logoFast .5s ease forwards, logoFloat 4s ease-in-out infinite 1s;
 }
 
 @keyframes logoFast{
@@ -125,13 +141,20 @@ body::before{
   }
 }
 
+@keyframes logoFloat{
+  0%{transform:scale(.95);}
+  50%{transform:scale(1);}
+  100%{transform:scale(.95);}
+}
+
 /* TEXTO */
+
 .tagline{
   margin-top:25px;
   font-size:14px;
   letter-spacing:.5px;
   opacity:0;
-  animation:textFade 1s ease forwards 1.8s;
+  animation:textFade 1s ease forwards 1.6s;
 }
 
 @keyframes textFade{
@@ -139,6 +162,7 @@ body::before{
 }
 
 /* PROGRESS */
+
 .progress{
   margin-top:30px;
   width:200px;
@@ -154,7 +178,7 @@ body::before{
   height:100%;
   width:0%;
   background:linear-gradient(90deg,var(--rf-gold),var(--rf-gold-strong));
-  animation:load 6s ease forwards;
+  animation:load 4s ease forwards;
 }
 
 @keyframes load{
@@ -162,6 +186,7 @@ body::before{
 }
 
 /* FADE OUT */
+
 .fade-out{
   animation:fadeOut .5s ease forwards;
 }
@@ -177,6 +202,7 @@ body::before{
   from{opacity:0;}
   to{opacity:1;}
 }
+
 </style>
 </head>
 
@@ -190,7 +216,7 @@ body::before{
   <img src="assets/icons/logo-1024.png" class="logo" alt="RF Passageiro">
 
   <div class="tagline">
-    Conectando você ao seu motorista
+    Mobilidade com excelência
   </div>
 
   <div class="progress">
@@ -201,15 +227,15 @@ body::before{
 
 <script>
 
-/* Tempo total ~7.2 segundos */
+/* Splash otimizado (4.5s total) */
 
 setTimeout(()=>{
   document.body.classList.add("fade-out");
-},6600);
+},4000);
 
 setTimeout(()=>{
   window.location.href="home.html";
-},7200);
+},4500);
 
 </script>
 
