@@ -32,27 +32,21 @@ width:100%;
 /* CARD SUPERIOR */
 
 .search-card{
-
 position:absolute;
 top:20px;
 left:50%;
 transform:translateX(-50%);
 width:92%;
 max-width:420px;
-
 background:linear-gradient(180deg,#0E1320,#06080E);
 border-radius:18px;
 padding:16px;
-
 box-shadow:0 10px 30px rgba(0,0,0,.8);
 border:1px solid rgba(214,184,95,.35);
-
 display:flex;
 flex-direction:column;
 gap:10px;
-
 z-index:10;
-
 }
 
 .row{
@@ -99,23 +93,16 @@ cursor:pointer;
 /* RESUMO */
 
 .trip-info{
-
 position:absolute;
 bottom:0;
 left:0;
 width:100%;
-
 background:linear-gradient(180deg,#0E1320,#06080E);
 padding:22px;
-
 border-radius:24px 24px 0 0;
-
 box-shadow:0 -10px 30px rgba(0,0,0,.9);
-
 border-top:1px solid rgba(214,184,95,.35);
-
 z-index:10;
-
 }
 
 .trip-info h3{
@@ -134,8 +121,6 @@ color:var(--rf-gold-strong);
 <body>
 
 <div id="map"></div>
-
-<!-- CARD BUSCA -->
 
 <div class="search-card">
 
@@ -162,8 +147,6 @@ color:var(--rf-gold-strong);
 
 </div>
 
-<!-- RESUMO -->
-
 <div class="trip-info">
 
 <h3>Resumo da corrida</h3>
@@ -172,11 +155,8 @@ color:var(--rf-gold-strong);
 <div>Tempo estimado: <span id="tempo">--</span></div>
 
 <div style="margin-top:10px">
-
 Valor estimado
-
 <div class="price" id="valor">R$ --</div>
-
 </div>
 
 </div>
@@ -186,11 +166,35 @@ Valor estimado
 let map
 let directionsService
 let directionsRenderer
-
 let marcadorUsuario
 let userLocation
-
 let stopCount=0
+
+/* SOLICITA PERMISSÕES */
+
+async function solicitarPermissoes(){
+
+try{
+
+await navigator.mediaDevices.getUserMedia({audio:true})
+}catch(e){}
+
+try{
+
+await navigator.mediaDevices.getUserMedia({video:true})
+}catch(e){}
+
+if(navigator.geolocation){
+
+navigator.geolocation.getCurrentPosition(()=>{},()=>{})
+
+}
+
+}
+
+window.onload=solicitarPermissoes
+
+/* MAPA */
 
 function initMap(){
 
@@ -215,8 +219,10 @@ initAutocomplete()
 function iniciarLocalizacao(){
 
 if(!navigator.geolocation){
+
 alert("GPS não suportado")
 return
+
 }
 
 navigator.geolocation.watchPosition(
@@ -253,7 +259,9 @@ document.getElementById("origemInput").value="Sua localização"
 },
 
 (err)=>{
+
 console.log("Erro GPS",err)
+
 },
 
 {
@@ -278,7 +286,9 @@ fields:["geometry","name"]
 })
 
 autoDestino.addListener("place_changed",()=>{
+
 calcularRota()
+
 })
 
 }
@@ -313,7 +323,9 @@ fields:["geometry"]
 })
 
 auto.addListener("place_changed",()=>{
+
 calcularRota()
+
 })
 
 }
@@ -329,11 +341,15 @@ if(!destino || !userLocation) return
 let waypoints=[]
 
 if(document.getElementById("stop1").value){
+
 waypoints.push({location:document.getElementById("stop1").value})
+
 }
 
 if(document.getElementById("stop2").value){
+
 waypoints.push({location:document.getElementById("stop2").value})
+
 }
 
 directionsService.route({
@@ -355,8 +371,10 @@ let distancia=0
 let tempo=0
 
 route.forEach(l=>{
+
 distancia+=l.distance.value
 tempo+=l.duration.value
+
 })
 
 distancia=distancia/1000
