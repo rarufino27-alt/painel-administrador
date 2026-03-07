@@ -24,10 +24,38 @@ font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
 }
 
 body{
-background: radial-gradient(circle at top,#161D2E,#070910 75%);
+background:#000;
 color:#fff;
 overflow-x:hidden;
 transition:.25s;
+}
+
+/* MAPA */
+
+#map{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+z-index:-1;
+}
+
+/* BOTÃO LOCALIZAÇÃO */
+
+.loc-btn{
+position:fixed;
+bottom:170px;
+right:20px;
+width:48px;
+height:48px;
+border-radius:50%;
+border:none;
+background:white;
+font-size:20px;
+cursor:pointer;
+box-shadow:0 4px 12px rgba(0,0,0,.35);
+z-index:5;
 }
 
 /* HEADER */
@@ -38,6 +66,8 @@ display:flex;
 justify-content:space-between;
 align-items:center;
 border-bottom:1px solid rgba(214,184,95,.25);
+background:rgba(0,0,0,.5);
+backdrop-filter:blur(8px);
 }
 
 .logo{
@@ -60,6 +90,7 @@ font-size:30px;
 font-weight:900;
 line-height:1.2;
 letter-spacing:.5px;
+background:rgba(0,0,0,.4);
 }
 
 /* HERO VISUAL */
@@ -305,6 +336,10 @@ background:rgba(255,255,255,.08);
 
 <body>
 
+<div id="map"></div>
+
+<button class="loc-btn" onclick="centralizarUsuario()">📍</button>
+
 <div class="header">
 <div class="logo">RF</div>
 <div class="status">Passageiro</div>
@@ -399,252 +434,93 @@ Buscar motorista
 
 <script>
 
-/* HERO SLIDER */
+/* MAPA */
 
-const heroSlides=document.querySelectorAll(".hero-slide");
-const dots=document.querySelectorAll(".dot-ind");
+let map
+let marcadorUsuario
+let motoristas=[]
 
-let heroIndex=0;
+function initMap(){
 
-function showSlide(i){
+const centro={lat:-8.283,lng:-35.032}
 
-heroSlides.forEach(s=>s.classList.remove("active"));
-dots.forEach(d=>d.classList.remove("active"));
+map=new google.maps.Map(document.getElementById("map"),{
+zoom:14,
+center:centro,
+mapTypeControl:false,
+streetViewControl:false,
+fullscreenControl:false
+})
 
-heroSlides[i].classList.add("active");
-dots[i].classList.add("active");
-
-}
-
-function nextSlide(){
-
-heroIndex++;
-
-if(heroIndex>=heroSlides.length){
-heroIndex=0;
-}
-
-showSlide(heroIndex);
+localizarUsuario()
+simularMotoristas()
 
 }
 
-setInterval(nextSlide,5000);
+function localizarUsuario(){
 
-/* SWIPE */
+if(navigator.geolocation){
 
-let startX=0;
+navigator.geolocation.getCurrentPosition(pos=>{
 
-const slider=document.querySelector(".hero-visual");
+const posicao={
+lat:pos.coords.latitude,
+lng:pos.coords.longitude
+}
 
-slider.addEventListener("touchstart",(e)=>{
-startX=e.touches[0].clientX;
-});
+map.setCenter(posicao)
 
-slider.addEventListener("touchend",(e)=>{
+if(marcadorUsuario) marcadorUsuario.setMap(null)
 
-let endX=e.changedTouches[0].clientX;
+marcadorUsuario=new google.maps.Marker({
+position:posicao,
+map:map,
+icon:{url:"https://maps.google.com/mapfiles/ms/icons/blue-dot.png"}
+})
 
-if(startX-endX>50){
-
-heroIndex++;
-if(heroIndex>=heroSlides.length) heroIndex=0;
-
-showSlide(heroIndex);
+})
 
 }
 
-if(endX-startX>50){
+}
 
-heroIndex--;
-if(heroIndex<0) heroIndex=heroSlides.length-1;
+function centralizarUsuario(){
+if(marcadorUsuario){
+map.setCenter(marcadorUsuario.getPosition())
+}
+}
 
-showSlide(heroIndex);
+function simularMotoristas(){
+
+const pontos=[
+{lat:-8.284,lng:-35.030},
+{lat:-8.282,lng:-35.034},
+{lat:-8.280,lng:-35.028},
+{lat:-8.286,lng:-35.033}
+]
+
+pontos.forEach(p=>{
+
+const m=new google.maps.Marker({
+position:p,
+map:map,
+icon:{
+url:"https://maps.google.com/mapfiles/kml/shapes/cabs.png",
+scaledSize:new google.maps.Size(40,40)
+}
+})
+
+motoristas.push(m)
+
+})
 
 }
 
-});
-
-/* RESTANTE DO SEU SCRIPT ORIGINAL */
-
-const origemBtn=document.getElementById("origemBtn");
-const destinoBtn=document.getElementById("destinoBtn");
-const paradaBtn=document.getElementById("paradaBtn");
-const plusBtn=document.getElementById("plusBtn");
-
-const origemTexto=document.getElementById("origemTexto");
-const destinoTexto=document.getElementById("destinoTexto");
-const paradaTexto=document.getElementById("paradaTexto");
-
-const precoBox=document.getElementById("precoBox");
-const precoValor=document.getElementById("precoValor");
-const confirmar=document.getElementById("confirmar");
-
-const optionsBox=document.getElementById("optionsBox");
-
-const desvioBtn=document.getElementById("desvioBtn");
-const mercadoBtn=document.getElementById("mercadoBtn");
-const carro6Btn=document.getElementById("carro6Btn");
-const excessoBtn=document.getElementById("excessoBtn");
-
-const modal=document.getElementById("modal");
-const lista=document.getElementById("lista");
-
-let origem=null;
-let destino=null;
-let parada=null;
-
-let usarParada=false;
-let desvio=false;
-let mercado=false;
-let carro6=false;
-let excesso=false;
-
-async function iniciar(){
-if(window.DataManager){
-await DataManager.carregarOrigens();
-}
-}
-iniciar();
-
-function calcular(base){
-
-if(desvio) base+=5;
-if(mercado) base+=3.89;
-
-let mult=(carro6||excesso)?1.5:1;
-
-return Number((base*mult).toFixed(2));
-}
-
-function recalcular(){
-
-if(!origem||!destino){
-confirmar.disabled=true;
-precoBox.style.display="none";
-return;
-}
-
-let base=0;
-
-if(usarParada&&parada){
-base=(DataManager.buscarValor(origem,parada)||0)
-+(DataManager.buscarValor(parada,destino)||0);
-}else{
-base=DataManager.buscarValor(origem,destino)||0;
-}
-
-const total=calcular(base);
-
-precoValor.innerText="R$ "+total.toFixed(2);
-precoBox.style.display="block";
-confirmar.disabled=false;
-
-}
-
-async function abrir(tipo){
-
-modal.style.display="flex";
-lista.innerHTML="";
-
-let dados=[];
-
-if(tipo==="origem") dados=await DataManager.carregarOrigens();
-if(tipo==="destino"||tipo==="parada") dados=DataManager.listarDestinos(origem);
-
-dados.forEach(item=>{
-
-const d=document.createElement("div");
-d.innerText=item;
-
-d.onclick=()=>{
-
-if(tipo==="origem"){
-origem=item;
-origemTexto.innerText=item;
-destinoBtn.style.display="flex";
-plusBtn.style.display="flex";
-}
-
-if(tipo==="destino"){
-destino=item;
-destinoTexto.innerText=item;
-optionsBox.style.display="flex";
-}
-
-if(tipo==="parada"){
-parada=item;
-paradaTexto.innerText=item;
-}
-
-modal.style.display="none";
-recalcular();
-
-};
-
-lista.appendChild(d);
-
-});
-
-}
-
-origemBtn.onclick=()=>abrir("origem");
-destinoBtn.onclick=()=>abrir("destino");
-paradaBtn.onclick=()=>abrir("parada");
-
-plusBtn.onclick=()=>{
-usarParada=!usarParada;
-paradaBtn.style.display=usarParada?"flex":"none";
-};
-
-desvioBtn.onclick=()=>{
-desvio=!desvio;
-desvioBtn.classList.toggle("active");
-recalcular();
-};
-
-mercadoBtn.onclick=()=>{
-mercado=!mercado;
-mercadoBtn.classList.toggle("active");
-recalcular();
-};
-
-carro6Btn.onclick=()=>{
-carro6=true;
-excesso=false;
-carro6Btn.classList.add("active");
-excessoBtn.classList.remove("active");
-recalcular();
-};
-
-excessoBtn.onclick=()=>{
-excesso=true;
-carro6=false;
-excessoBtn.classList.add("active");
-carro6Btn.classList.remove("active");
-recalcular();
-};
-
-confirmar.onclick=()=>{
-
-localStorage.setItem("rf_corrida_temp",JSON.stringify({
-origem,
-destino,
-parada:usarParada?parada:null
-}));
-
-document.body.style.opacity="0";
-
-setTimeout(()=>{
-window.location.href="procurando.html";
-},250);
-
-};
-
-modal.onclick=(e)=>{
-if(e.target===modal) modal.style.display="none";
-};
+window.initMap=initMap
 
 </script>
+
+<script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyA1cAOVDUPslp3eRQilh41tte_jqqzeY00&callback=initMap" async defer></script>
 
 </body>
 </html>
