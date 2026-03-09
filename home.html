@@ -26,16 +26,12 @@ color:#fff;
 overflow-x:hidden;
 }
 
-/* HEADER */
-
 .header{
 padding:20px;
 font-weight:700;
 font-size:15px;
 letter-spacing:.5px;
 }
-
-/* HERO */
 
 .hero{
 padding:0 20px;
@@ -44,43 +40,28 @@ font-weight:800;
 margin-bottom:10px;
 }
 
-/* AREA DO SLIDE */
-
 .slide-area{
 padding:10px 20px 30px 20px;
 display:flex;
 justify-content:center;
 }
 
-/* SLIDE */
-
 .slide-card{
-
 width:100%;
 max-width:600px;
 height:220px;
-
 border-radius:20px;
 overflow:hidden;
-
 border:1px solid rgba(214,184,95,.35);
-
 box-shadow:0 0 40px rgba(214,184,95,.25);
-
 }
 
 .slide-card img{
-
 width:100%;
 height:100%;
-
 object-fit:cover;
-
 transition:opacity .4s ease;
-
 }
-
-/* CARD INFERIOR */
 
 .card{
 position:fixed;
@@ -100,8 +81,6 @@ display:flex;
 flex-direction:column;
 gap:14px;
 }
-
-/* INPUTS */
 
 .input-box{
 background:#1C2333;
@@ -124,8 +103,6 @@ border-radius:50%;
 .parada{background:#3b82f6;}
 .destino{background:#ef4444;}
 
-/* PLUS */
-
 .plus-btn{
 width:44px;
 height:44px;
@@ -140,8 +117,6 @@ margin:auto;
 cursor:pointer;
 box-shadow:0 0 25px rgba(214,184,95,.5);
 }
-
-/* TAXAS */
 
 .option-btn,
 .radio-option{
@@ -165,8 +140,6 @@ display:flex;
 gap:10px;
 }
 
-/* PREÇO */
-
 .preco{
 padding:16px;
 border-radius:18px;
@@ -181,8 +154,6 @@ font-size:18px;
 color:var(--rf-gold-strong);
 }
 
-/* BOTÃO */
-
 button{
 padding:18px;
 border:none;
@@ -196,8 +167,6 @@ cursor:pointer;
 button:disabled{
 opacity:.4;
 }
-
-/* MODAL */
 
 .modal{
 position:fixed;
@@ -234,17 +203,12 @@ background:rgba(255,255,255,.08);
 <body>
 
 <div class="header">PASSAGEIRO RF</div>
-
 <div class="hero">Para onde vamos?</div>
 
 <div class="slide-area">
-
 <div class="slide-card">
-
 <img id="slideImg" src="img/slide1.jpg">
-
 </div>
-
 </div>
 
 <div class="card">
@@ -334,7 +298,6 @@ const slides=[
 ];
 
 let slideIndex=0;
-
 const slideImg=document.getElementById("slideImg");
 
 setInterval(()=>{
@@ -350,14 +313,13 @@ slideImg.style.opacity=0;
 setTimeout(()=>{
 
 slideImg.src=slides[slideIndex];
-
 slideImg.style.opacity=1;
 
 },250);
 
 },4000);
 
-/* RESTANTE DO SISTEMA */
+/* SISTEMA */
 
 const origemBtn=document.getElementById("origemBtn");
 const destinoBtn=document.getElementById("destinoBtn");
@@ -404,6 +366,8 @@ await DataManager.carregarOrigens();
 
 iniciar();
 
+/* CALCULAR */
+
 function calcular(valorBase){
 
 let adicional=0;
@@ -424,12 +388,13 @@ adicional=valorBase*0.35;
 }
 
 let subtotal=valorBase+adicional;
-
 let mult=(carro6||excesso)?1.5:1;
 
 return Number((subtotal*mult).toFixed(2));
 
 }
+
+/* RECALCULAR */
 
 function recalcular(){
 
@@ -437,7 +402,6 @@ if(!origem||!destino){
 
 precoBox.style.display="none";
 confirmar.disabled=true;
-
 return;
 
 }
@@ -461,34 +425,40 @@ if(usarMercado) base+=3.89;
 const total=calcular(base);
 
 precoValor.innerText="R$ "+total.toFixed(2);
-
 precoBox.style.display="block";
-
 confirmar.disabled=false;
 
 window.valorFinal=total;
 
 }
 
-async function abrir(tipo){
+/* ABRIR MODAL */
 
-if((tipo==="destino"||tipo==="parada")&&!origem){
-alert("Selecione origem primeiro.");
-return;
-}
+async function abrir(tipo){
 
 modal.style.display="flex";
 lista.innerHTML="";
 
 let dados=[];
 
-if(tipo==="origem") dados=await DataManager.carregarOrigens();
-if(tipo==="destino"||tipo==="parada") dados=DataManager.listarDestinos(origem);
+if(tipo==="origem"){
+dados=await DataManager.carregarOrigens();
+}
+
+if(tipo==="destino"||tipo==="parada"){
+
+if(!origem){
+alert("Selecione origem primeiro.");
+return;
+}
+
+dados=DataManager.listarDestinos(origem);
+
+}
 
 dados.forEach(item=>{
 
 const d=document.createElement("div");
-
 d.innerText=item;
 
 d.onclick=()=>{
@@ -496,47 +466,40 @@ d.onclick=()=>{
 if(tipo==="origem"){
 
 origem=item;
-
 destino=null;
-
 parada=null;
 
+desvioRota=false;
+usarMercado=false;
+carro6=false;
+excesso=false;
+
+taxasBox.style.display="none";
+
 origemTexto.innerText=item;
-
 destinoTexto.innerText="Selecionar destino";
-
 paradaTexto.innerText="Selecionar parada";
 
 modal.style.display="none";
 
-setTimeout(()=>{
-abrir("destino");
-},200);
+setTimeout(()=>abrir("destino"),200);
 
 return;
 
 }
 
 if(tipo==="destino"){
-
 destino=item;
-
 destinoTexto.innerText=item;
-
 taxasBox.style.display="flex";
-
 }
 
 if(tipo==="parada"){
-
 parada=item;
-
 paradaTexto.innerText=item;
-
 }
 
 modal.style.display="none";
-
 recalcular();
 
 };
@@ -548,73 +511,48 @@ lista.appendChild(d);
 }
 
 origemBtn.onclick=()=>abrir("origem");
-
 destinoBtn.onclick=()=>abrir("destino");
-
 paradaBtn.onclick=()=>abrir("parada");
 
 plusBtn.onclick=()=>{
 
 usarParada=!usarParada;
-
 paradaBtn.style.display=usarParada?"flex":"none";
-
 recalcular();
 
 };
 
 desvioRotaBtn.onclick=()=>{
-
 desvioRota=!desvioRota;
-
 desvioRotaBtn.classList.toggle("active");
-
 recalcular();
-
 };
 
 mercadoBtn.onclick=()=>{
-
 usarMercado=!usarMercado;
-
 mercadoBtn.classList.toggle("active");
-
 recalcular();
-
 };
 
 carro6Btn.onclick=()=>{
-
 carro6=true;
-
 excesso=false;
-
 carro6Btn.classList.add("active");
-
 excessoBtn.classList.remove("active");
-
 recalcular();
-
 };
 
 excessoBtn.onclick=()=>{
-
 excesso=true;
-
 carro6=false;
-
 excessoBtn.classList.add("active");
-
 carro6Btn.classList.remove("active");
-
 recalcular();
-
 };
 
 confirmar.onclick=()=>{
 
 localStorage.setItem("rf_corrida_temp",JSON.stringify({
-
 origem,
 destino,
 parada:usarParada?parada:null,
@@ -623,29 +561,22 @@ mercado:usarMercado,
 carro6,
 excesso,
 total:window.valorFinal
-
 }));
 
 document.body.style.transition="opacity .25s ease, transform .25s ease";
-
 document.body.style.opacity="0";
-
-document.body.style.transform="scale(.98)";
+document.body.style.transform="scale(.98)");
 
 setTimeout(()=>{
-
 window.location.href="procurando.html";
-
 },250);
 
 };
 
 modal.onclick=(e)=>{
-
 if(e.target===modal){
 modal.style.display="none";
 }
-
 };
 
 </script>
