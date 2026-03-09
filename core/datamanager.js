@@ -69,9 +69,16 @@ const DataManager = {
           valor: Number(r.valor)
         }));
 
-      const origens = [...new Set(
-        this.cache.rotas.map(r => r.origem)
-      )].sort((a,b)=>a.localeCompare(b,'pt-BR'));
+      // GERAR LISTA COMPLETA DE LOCAIS (ORIGENS + DESTINOS)
+      const locais = new Set();
+
+      this.cache.rotas.forEach(r=>{
+        locais.add(r.origem);
+        locais.add(r.destino);
+      });
+
+      const origens = [...locais]
+        .sort((a,b)=>a.localeCompare(b,'pt-BR'));
 
       this.cache.origens = origens;
 
@@ -83,22 +90,32 @@ const DataManager = {
     }
   },
 
-  // ===== LISTAR DESTINOS =====
+  // ===== LISTAR DESTINOS (AGORA BIDIRECIONAL) =====
   listarDestinos(origem){
 
     if(!this.cache.rotas || !origem) return [];
 
     const origemKey = this.normalizar(origem);
 
-    const destinos = this.cache.rotas
-      .filter(r => r.origemKey === origemKey)
-      .map(r => r.destino);
+    const destinos = [];
+
+    this.cache.rotas.forEach(r=>{
+
+      if(r.origemKey === origemKey){
+        destinos.push(r.destino);
+      }
+
+      if(r.destinoKey === origemKey){
+        destinos.push(r.origem);
+      }
+
+    });
 
     return [...new Set(destinos)]
       .sort((a,b)=>a.localeCompare(b,'pt-BR'));
   },
 
-  // ===== BUSCAR VALOR =====
+  // ===== BUSCAR VALOR (IDA OU VOLTA) =====
   buscarValor(origem, destino){
 
     if(!this.cache.rotas || !origem || !destino) return null;
