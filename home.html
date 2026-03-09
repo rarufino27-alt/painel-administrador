@@ -39,70 +39,48 @@ letter-spacing:.5px;
 
 .hero{
 padding:0 20px;
-font-size:24px;
+font-size:26px;
 font-weight:800;
+margin-bottom:10px;
 }
 
-/* RADAR */
+/* AREA DO SLIDE */
 
-.radar-area{
-height:240px;
+.slide-area{
+padding:10px 20px 30px 20px;
 display:flex;
-align-items:center;
 justify-content:center;
-position:relative;
-}
-
-.radar{
-width:200px;
-height:200px;
-border-radius:50%;
-border:2px solid rgba(214,184,95,.5);
-position:absolute;
-}
-
-.radar::before,
-.radar::after{
-content:"";
-position:absolute;
-inset:0;
-border-radius:50%;
-border:2px solid rgba(214,184,95,.3);
-animation:pulse 3s infinite;
-}
-
-.radar::after{
-animation-delay:1.5s;
-}
-
-@keyframes pulse{
-
-0%{transform:scale(.8);opacity:.8;}
-100%{transform:scale(1.6);opacity:0;}
-
 }
 
 /* SLIDE */
 
 .slide-card{
-position:absolute;
-width:90%;
-max-width:380px;
-height:160px;
+
+width:100%;
+max-width:600px;
+height:220px;
+
 border-radius:20px;
 overflow:hidden;
-border:1px solid rgba(214,184,95,.3);
+
+border:1px solid rgba(214,184,95,.35);
+
 box-shadow:0 0 40px rgba(214,184,95,.25);
-transition:opacity .4s ease, transform .4s ease;
+
 }
 
 .slide-card img{
+
 width:100%;
 height:100%;
+
 object-fit:cover;
+
+transition:opacity .4s ease;
+
 }
 
-/* CARD */
+/* CARD INFERIOR */
 
 .card{
 position:fixed;
@@ -256,14 +234,15 @@ background:rgba(255,255,255,.08);
 <body>
 
 <div class="header">PASSAGEIRO RF</div>
+
 <div class="hero">Para onde vamos?</div>
 
-<div class="radar-area">
-
-<div class="radar"></div>
+<div class="slide-area">
 
 <div class="slide-card">
+
 <img id="slideImg" src="img/slide1.jpg">
+
 </div>
 
 </div>
@@ -290,15 +269,23 @@ background:rgba(255,255,255,.08);
 
 <div id="taxasBox" style="display:none;flex-direction:column;gap:10px;">
 
-<div class="option-btn" id="desvioRotaBtn">Desvio simples (+R$5)</div>
+<div class="option-btn" id="desvioRotaBtn">
+Desvio simples (+R$5)
+</div>
 
-<div class="option-btn" id="mercadoBtn">🛒 Saída Mercado (+R$3,89)</div>
+<div class="option-btn" id="mercadoBtn">
+🛒 Saída Mercado (+R$3,89)
+</div>
 
 <div class="radio-group">
 
-<div class="radio-option" id="carro6Btn">🚐 6 Lugares (+50%)</div>
+<div class="radio-option" id="carro6Btn">
+🚐 6 Lugares (+50%)
+</div>
 
-<div class="radio-option" id="excessoBtn">👥 Excesso (+50%)</div>
+<div class="radio-option" id="excessoBtn">
+👥 Excesso (+50%)
+</div>
 
 </div>
 
@@ -338,7 +325,7 @@ window.location.href="index.html";
 
 });
 
-/* SLIDES COM IMAGEM */
+/* SLIDES */
 
 const slides=[
 "img/slide1.jpg",
@@ -347,6 +334,7 @@ const slides=[
 ];
 
 let slideIndex=0;
+
 const slideImg=document.getElementById("slideImg");
 
 setInterval(()=>{
@@ -362,13 +350,14 @@ slideImg.style.opacity=0;
 setTimeout(()=>{
 
 slideImg.src=slides[slideIndex];
+
 slideImg.style.opacity=1;
 
-},300);
+},250);
 
 },4000);
 
-/* RESTANTE DO SCRIPT ORIGINAL */
+/* RESTANTE DO SISTEMA */
 
 const origemBtn=document.getElementById("origemBtn");
 const destinoBtn=document.getElementById("destinoBtn");
@@ -406,10 +395,13 @@ let carro6=false;
 let excesso=false;
 
 async function iniciar(){
+
 if(window.DataManager){
 await DataManager.carregarOrigens();
 }
+
 }
+
 iniciar();
 
 function calcular(valorBase){
@@ -432,6 +424,7 @@ adicional=valorBase*0.35;
 }
 
 let subtotal=valorBase+adicional;
+
 let mult=(carro6||excesso)?1.5:1;
 
 return Number((subtotal*mult).toFixed(2));
@@ -441,9 +434,12 @@ return Number((subtotal*mult).toFixed(2));
 function recalcular(){
 
 if(!origem||!destino){
+
 precoBox.style.display="none";
 confirmar.disabled=true;
+
 return;
+
 }
 
 let base=0;
@@ -465,7 +461,9 @@ if(usarMercado) base+=3.89;
 const total=calcular(base);
 
 precoValor.innerText="R$ "+total.toFixed(2);
+
 precoBox.style.display="block";
+
 confirmar.disabled=false;
 
 window.valorFinal=total;
@@ -490,6 +488,7 @@ if(tipo==="destino"||tipo==="parada") dados=DataManager.listarDestinos(origem);
 dados.forEach(item=>{
 
 const d=document.createElement("div");
+
 d.innerText=item;
 
 d.onclick=()=>{
@@ -497,11 +496,15 @@ d.onclick=()=>{
 if(tipo==="origem"){
 
 origem=item;
+
 destino=null;
+
 parada=null;
 
 origemTexto.innerText=item;
+
 destinoTexto.innerText="Selecionar destino";
+
 paradaTexto.innerText="Selecionar parada";
 
 modal.style.display="none";
@@ -515,17 +518,25 @@ return;
 }
 
 if(tipo==="destino"){
+
 destino=item;
+
 destinoTexto.innerText=item;
+
 taxasBox.style.display="flex";
+
 }
 
 if(tipo==="parada"){
+
 parada=item;
+
 paradaTexto.innerText=item;
+
 }
 
 modal.style.display="none";
+
 recalcular();
 
 };
@@ -537,12 +548,15 @@ lista.appendChild(d);
 }
 
 origemBtn.onclick=()=>abrir("origem");
+
 destinoBtn.onclick=()=>abrir("destino");
+
 paradaBtn.onclick=()=>abrir("parada");
 
 plusBtn.onclick=()=>{
 
 usarParada=!usarParada;
+
 paradaBtn.style.display=usarParada?"flex":"none";
 
 recalcular();
@@ -550,36 +564,57 @@ recalcular();
 };
 
 desvioRotaBtn.onclick=()=>{
+
 desvioRota=!desvioRota;
+
 desvioRotaBtn.classList.toggle("active");
+
 recalcular();
+
 };
 
 mercadoBtn.onclick=()=>{
+
 usarMercado=!usarMercado;
+
 mercadoBtn.classList.toggle("active");
+
 recalcular();
+
 };
 
 carro6Btn.onclick=()=>{
+
 carro6=true;
+
 excesso=false;
+
 carro6Btn.classList.add("active");
+
 excessoBtn.classList.remove("active");
+
 recalcular();
+
 };
 
 excessoBtn.onclick=()=>{
+
 excesso=true;
+
 carro6=false;
+
 excessoBtn.classList.add("active");
+
 carro6Btn.classList.remove("active");
+
 recalcular();
+
 };
 
 confirmar.onclick=()=>{
 
 localStorage.setItem("rf_corrida_temp",JSON.stringify({
+
 origem,
 destino,
 parada:usarParada?parada:null,
@@ -588,20 +623,29 @@ mercado:usarMercado,
 carro6,
 excesso,
 total:window.valorFinal
+
 }));
 
 document.body.style.transition="opacity .25s ease, transform .25s ease";
+
 document.body.style.opacity="0";
+
 document.body.style.transform="scale(.98)";
 
 setTimeout(()=>{
-window.location.href="resumo.html";
+
+window.location.href="procurando.html";
+
 },250);
 
 };
 
 modal.onclick=(e)=>{
-if(e.target===modal) modal.style.display="none";
+
+if(e.target===modal){
+modal.style.display="none";
+}
+
 };
 
 </script>
