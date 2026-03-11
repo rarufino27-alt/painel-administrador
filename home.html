@@ -2,490 +2,333 @@
 <html lang="pt-BR">
 <head>
 <meta charset="UTF-8">
-<title>RF – Viagem</title>
+<title>RF – Resumo</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<script src="core/datamanager.js"></script>
+<script src="core/taxas.js"></script>
 
 <style>
+
+:root{
+--rf-yellow:#ffd600;
+--rf-yellow-strong:#ffb800;
+}
+
 *{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
 }
 
 body{
-  background:linear-gradient(to bottom, #0f0f0f, #1a1a1a);
-  color:#ffffff;
-  height:100vh;
-  overflow:hidden;
+background: radial-gradient(circle at top,#1a1a1a 0%,#000 70%);
+color:#fff;
 }
 
-/* ================= HEADER ================= */
-
-.top{
-  background:#111111;
-  padding:22px 20px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  border-bottom:1px solid rgba(255,255,255,.05);
+.header{
+padding:30px 25px 10px;
+font-size:22px;
+font-weight:900;
 }
 
-.top-white{
-  background:#ffffff;
-  padding:20px 20px 28px 20px;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-  border-bottom-left-radius:32px;
-  border-bottom-right-radius:32px;
-  box-shadow:0 10px 30px rgba(0,0,0,.25);
+.container{
+padding:10px 25px 140px;
+max-width:450px;
+margin:auto;
 }
-
-.logo{
-  font-weight:900;
-  font-size:1.2rem;
-  letter-spacing:1px;
-  color:#facc15;
-}
-
-.logo-area{
-  display:flex;
-  align-items:center;
-  gap:14px;
-}
-
-.logo-img{
-  height:60px;
-  width:auto;
-  border-radius:16px;
-}
-
-.logo-text{
-  font-weight:900;
-  letter-spacing:1px;
-  color:#facc15;
-  font-size:1rem;
-}
-
-.logo-text-dark{
-  font-weight:900;
-  letter-spacing:1px;
-  color:#000;
-  font-size:1.1rem;
-}
-
-.menu-btn{
-  font-size:22px;
-  cursor:pointer;
-  color:#ffffff;
-}
-
-.menu-btn-dark{
-  font-size:24px;
-  cursor:pointer;
-  color:#000;
-}
-
-/* ================= MENU ================= */
-
-.menu-overlay{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.6);
-  display:none;
-  z-index:99;
-}
-
-.menu{
-  position:fixed;
-  top:0;
-  left:-260px;
-  width:260px;
-  height:100%;
-  background:#1a1a1a;
-  transition:left .3s ease;
-  z-index:100;
-  padding:20px;
-  color:#fff;
-}
-
-  .menu.ativo{
-  left:0;
-}
-
-.menu h3{
-  margin-bottom:20px;
-  color:#facc15;
-}
-
-.menu-item{
-  padding:14px 0;
-  border-bottom:1px solid rgba(255,255,255,.08);
-  cursor:pointer;
-  transition:.2s;
-}
-
-.menu-item:hover{
-  color:#facc15;
-}
-
-/* ================= CENTRO ================= */
-
-.center{
-  position:absolute;
-  top:52%;
-  left:50%;
-  transform:translate(-50%,-50%);
-  width:90%;
-  max-width:420px;
-}
-
-.titulo-central{
-  text-align:center;
-  font-weight:700;
-  font-size:1.3rem;
-  margin-bottom:30px;
-  color:#ffffff;
-}
-
-/* ================= CARD ================= */
 
 .card{
-  background:#1c1c1c;
-  border-radius:20px;
-  padding:20px;
-  box-shadow:0 15px 35px rgba(0,0,0,.5);
-  border:1px solid rgba(255,255,255,.05);
+background:rgba(255,255,255,.06);
+border-radius:26px;
+padding:22px;
+margin-bottom:22px;
+border:1px solid rgba(255,255,255,.08);
 }
 
-.campo{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  padding:16px 0;
-  border-bottom:1px solid rgba(255,255,255,.08);
-  cursor:pointer;
-  transition:.2s;
+.card h3{
+margin-bottom:14px;
+font-size:15px;
+opacity:.8;
 }
 
-.campo:hover{
-  opacity:.85;
+.rota-item{
+margin-bottom:6px;
 }
 
-.campo:last-child{
-  border-bottom:none;
+textarea{
+width:100%;
+border-radius:16px;
+padding:14px;
+border:none;
+background:rgba(255,255,255,.08);
+color:#fff;
+height:90px;
 }
 
-.campo-left{
-  display:flex;
-  align-items:center;
-  gap:12px;
-  color:#ffffff;
-  font-weight:500;
+.categoria{
+display:flex;
+gap:12px;
 }
 
-.dot{
-  width:10px;
-  height:10px;
-  border-radius:50%;
+.cat{
+flex:1;
+padding:16px;
+border-radius:18px;
+text-align:center;
+cursor:pointer;
+background:rgba(255,255,255,.08);
+font-weight:600;
 }
 
-.origem{ background:#22c55e; }
-.parada{ background:#facc15; }
-.destino{ background:#ef4444; }
-
-.plus{
-  font-size:20px;
-  color:#facc15;
+.cat.active{
+background:linear-gradient(135deg,var(--rf-yellow),var(--rf-yellow-strong));
+color:#000;
 }
 
-/* ================= BOTÃO ================= */
+.linha{
+display:flex;
+justify-content:space-between;
+margin-bottom:8px;
+}
 
-.bottom{
-  position:absolute;
-  bottom:30px;
-  left:20px;
-  right:20px;
+.total{
+font-size:22px;
+font-weight:900;
+margin-top:14px;
+color:var(--rf-yellow);
+}
+
+.footer{
+position:fixed;
+bottom:0;
+left:0;
+width:100%;
+background:#000;
+padding:20px;
+}
+
+.footer-inner{
+max-width:450px;
+margin:auto;
+display:flex;
+justify-content:space-between;
+align-items:center;
+}
+
+.valor{
+font-size:26px;
+font-weight:900;
+color:var(--rf-yellow);
 }
 
 button{
-  width:100%;
-  padding:18px;
-  border:none;
-  border-radius:35px;
-  background:#facc15;
-  color:#000;
-  font-weight:800;
-  font-size:1rem;
-  cursor:pointer;
-  transition:.2s;
+padding:14px 30px;
+border:none;
+border-radius:30px;
+background:linear-gradient(135deg,var(--rf-yellow),var(--rf-yellow-strong));
+font-weight:800;
+cursor:pointer;
 }
 
-button:hover{
-  transform:translateY(-2px);
-}
-
-button:disabled{
-  background:#333;
-  color:#777;
-}
-
-/* ================= MODAL ================= */
-
-.modal{
-  position:fixed;
-  inset:0;
-  background:rgba(0,0,0,.8);
-  display:none;
-  align-items:center;
-  justify-content:center;
-  padding:20px;
-  z-index:200;
-}
-
-.modal-content{
-  background:#1c1c1c;
-  width:100%;
-  max-width:420px;
-  border-radius:20px;
-  padding:20px;
-  max-height:80vh;
-  display:flex;
-  flex-direction:column;
-  border:1px solid rgba(255,255,255,.08);
-}
-
-.modal-content input{
-  width:100%;
-  padding:14px;
-  border-radius:12px;
-  border:1px solid rgba(255,255,255,.1);
-  background:#111;
-  color:#fff;
-  margin-bottom:14px;
-}
-
-.lista{
-  overflow-y:auto;
-  flex:1;
-}
-
-.lista div{
-  padding:12px;
-  border-radius:10px;
-  cursor:pointer;
-  transition:.2s;
-}
-
-.lista div:hover{
-  background:#2a2a2a;
-}
 </style>
 </head>
+
 <body>
 
-<!-- MENU -->
-<div class="menu-overlay" id="menuOverlay" onclick="fecharMenu()"></div>
-<div class="menu" id="menu">
-  <h3>Menu</h3>
-<div class="menu-item" onclick="irPara('termos.html')">Regras do Grupo RF</div>
-<div class="menu-item" onclick="irPara('configuracoes.html')">Configurações</div>
+<div class="header">Resumo da Viagem</div>
+
+<div class="container">
+
+<div class="card">
+<h3>Rota</h3>
+<div id="rota"></div>
 </div>
 
-<!-- HEADER -->
-<div class="top-white">
-  <div class="logo-area">
-    <img src="icons/icon-192.png" class="logo-img">
-    <span class="logo-text-dark">TABELA GRUPO RF</span>
-  </div>
-  <div class="menu-btn-dark" onclick="abrirMenu()">☰</div>
+<div class="card">
+<h3>Observação ao motorista</h3>
+<textarea id="obs"></textarea>
 </div>
 
-<!-- CENTRO -->
-<div class="center">
+<div class="card">
+<h3>Categoria</h3>
 
-  <div class="titulo-central">
-    Para onde vamos hoje?
-  </div>
+<div class="categoria">
 
-  <div class="card">
-
-    <div class="campo" id="origemBtn">
-      <div class="campo-left">
-        <div class="dot origem"></div>
-        <div id="origemTexto">Selecionar origem</div>
-      </div>
-    </div>
-
-    <div class="campo" id="paradaBtn" style="display:none;">
-      <div class="campo-left">
-        <div class="dot parada"></div>
-        <div id="paradaTexto">Selecionar parada</div>
-      </div>
-    </div>
-
-    <div class="campo" id="destinoBtn">
-      <div class="campo-left">
-        <div class="dot destino"></div>
-        <div id="destinoTexto">Selecionar destino</div>
-      </div>
-      <div class="plus" id="addParada">＋</div>
-    </div>
-
-  </div>
+<div class="cat active" id="cat4">Driver 4</div>
+<div class="cat" id="cat6">Driver 6 (+50%)</div>
 
 </div>
 
-<div class="bottom">
-  <button id="confirmar" disabled>Confirmar rota</button>
 </div>
 
-<!-- MODAL -->
-<div class="modal" id="modal">
-  <div class="modal-content">
-    <input type="text" id="busca" placeholder="Buscar local...">
-    <div class="lista" id="lista"></div>
-  </div>
+<div class="card">
+<h3>Detalhamento</h3>
+<div id="detalhe"></div>
+</div>
+
+</div>
+
+<div class="footer">
+
+<div class="footer-inner">
+
+<div class="valor" id="valorFinal">R$ 0,00</div>
+
+<button onclick="enviar()">Solicitar</button>
+
+</div>
+
 </div>
 
 <script>
 
-let origem=null, parada=null, destino=null, modo=null;
+const corrida = JSON.parse(localStorage.getItem("rf_corrida_temp"));
 
-const modal=document.getElementById("modal");
-const lista=document.getElementById("lista");
-const busca=document.getElementById("busca");
-const confirmarBtn=document.getElementById("confirmar");
-
-/* MENU */
-function abrirMenu(){
-  document.getElementById("menu").classList.add("ativo");
-  document.getElementById("menuOverlay").style.display="block";
+if(!corrida){
+location.href="home.html";
 }
 
-function fecharMenu(){
-  document.getElementById("menu").classList.remove("ativo");
-  document.getElementById("menuOverlay").style.display="none";
-}
-  
-  function irPara(pagina){
-  window.location.href = pagina;
-}
+let {
+origem,
+parada,
+destino,
+valor = 0,
+desvioRota = false,
+mercado = false
+} = corrida;
 
-/* INIT */
-async function init(){
-  await DataManager.carregar();
-}
-init();
+let categoriaMult = 1;
 
-/* MODAL */
-function abrirModal(tipo){
-  if(tipo!=="origem" && !origem){
-    alert("Selecione a origem primeiro.");
-    return;
-  }
+function montarRota(){
 
-  modo=tipo;
-  busca.value="";
-  modal.style.display="flex";
+let html = `
+<div class="rota-item">Origem: ${origem}</div>
+`;
 
-  let dados=[];
-  if(tipo==="origem") dados=DataManager.listarOrigens();
-  if(tipo==="parada") dados=DataManager.listarDestinos(origem)
-      .filter(p=>DataManager.listarDestinos(p).length>0);
-  if(tipo==="destino"){
-    dados=parada?DataManager.listarDestinos(parada)
-                :DataManager.listarDestinos(origem);
-  }
+if(parada){
 
-  renderLista(dados);
+html += `<div class="rota-item">Parada: ${parada}</div>`;
+
 }
 
-function renderLista(arr){
-  lista.innerHTML="";
-  arr.forEach(item=>{
-    const div=document.createElement("div");
-    div.innerText=item;
-    div.onclick=()=>{
-      selecionar(item);
-      modal.style.display="none";
-    };
-    lista.appendChild(div);
-  });
+html += `<div class="rota-item">Destino: ${destino}</div>`;
+
+document.getElementById("rota").innerHTML = html;
+
 }
 
-/* BUSCA RÁPIDA CORRIGIDA */
-busca.addEventListener("input", ()=>{
-  const termo=busca.value.toLowerCase();
-  Array.from(lista.children).forEach(div=>{
-    div.style.display=div.innerText.toLowerCase().includes(termo)
-      ? "block" : "none";
-  });
+function calcular(){
+
+let base = Number(valor);
+
+let detalheHTML = "";
+
+detalheHTML += `
+<div class="linha">
+<span>Base</span>
+<span>R$ ${base.toFixed(2)}</span>
+</div>
+`;
+
+let taxas = [];
+
+const t1 = Taxas.noturno(base);
+if(t1) taxas.push(t1);
+
+const t2 = Taxas.desvio(desvioRota);
+if(t2) taxas.push(t2);
+
+const t3 = Taxas.mercado(mercado);
+if(t3) taxas.push(t3);
+
+const t4 = Taxas.praia(destino);
+if(t4) taxas.push(t4);
+
+taxas.forEach(t =>{
+
+detalheHTML += `
+<div class="linha">
+<span>${t.nome}</span>
+<span>R$ ${t.valor.toFixed(2)}</span>
+</div>
+`;
+
+base += t.valor;
+
 });
 
-/* SELECIONAR */
-function selecionar(valor){
-  if(modo==="origem"){
-    origem=valor; parada=null; destino=null;
-    origemTexto.innerText=valor;
-    paradaTexto.innerText="Selecionar parada";
-    destinoTexto.innerText="Selecionar destino";
-    paradaBtn.style.display="none";
-  }
-  if(modo==="parada"){
-    parada=valor; destino=null;
-    paradaTexto.innerText=valor;
-  }
-  if(modo==="destino"){
-    destino=valor;
-    destinoTexto.innerText=valor;
-  }
-  confirmarBtn.disabled=!(origem && destino);
+const categoria = Taxas.categoria(categoriaMult,base);
+
+if(categoria){
+
+detalheHTML += `
+<div class="linha">
+<span>${categoria.nome}</span>
+<span>R$ ${categoria.valor.toFixed(2)}</span>
+</div>
+`;
+
+base += categoria.valor;
+
 }
 
-/* EVENTOS */
-origemBtn.onclick=()=>abrirModal("origem");
-paradaBtn.onclick=()=>abrirModal("parada");
-destinoBtn.onclick=()=>abrirModal("destino");
+detalheHTML += `
+<div class="total">Total: R$ ${base.toFixed(2)}</div>
+`;
 
-addParada.onclick=(e)=>{
-  e.stopPropagation();
-  if(!origem){
-    alert("Selecione a origem primeiro.");
-    return;
-  }
-  paradaBtn.style.display="flex";
-};
+document.getElementById("detalhe").innerHTML = detalheHTML;
 
-modal.onclick=e=>{
-  if(e.target===modal) modal.style.display="none";
-};
+document.getElementById("valorFinal").innerText = "R$ "+base.toFixed(2);
 
-/* CONFIRMAR */
-confirmarBtn.onclick=()=>{
-  let valorTotal=0;
-  if(!parada){
-    valorTotal=DataManager.buscarValor(origem,destino)||0;
-  }else{
-    const p1=DataManager.buscarValor(origem,parada)||0;
-    const p2=DataManager.buscarValor(parada,destino)||0;
-    valorTotal=p1+p2;
-  }
+localStorage.setItem("rf_total_final",base.toFixed(2));
 
-  localStorage.setItem("rf_corrida_temp", JSON.stringify({
-    origem, parada, destino, valor:valorTotal
-  }));
+}
 
-  window.location.href="resumo.html";
-};
+cat4.onclick=()=>{
 
-(function(){
-  const temaSalvo = localStorage.getItem("rf_theme") || "dark";
-  document.body.setAttribute("data-theme", temaSalvo);
-})();
+categoriaMult = 1;
+
+cat4.classList.add("active");
+cat6.classList.remove("active");
+
+calcular();
+
+}
+
+cat6.onclick=()=>{
+
+categoriaMult = 1.5;
+
+cat6.classList.add("active");
+cat4.classList.remove("active");
+
+calcular();
+
+}
+
+function enviar(){
+
+calcular();
+
+const total = localStorage.getItem("rf_total_final");
+
+const msg = `
+🚖 SOLICITAÇÃO RF
+
+Origem: ${origem}
+Destino: ${destino}
+
+Total: R$ ${Number(total).toFixed(2)}
+`;
+
+window.open("https://wa.me/?text="+encodeURIComponent(msg));
+
+}
+
+montarRota();
+
+calcular();
 
 </script>
 
