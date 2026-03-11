@@ -6,126 +6,166 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <style>
+
 :root{
-  --rf-yellow:#ffd600;
-  --rf-yellow-strong:#ffb800;
+--rf-yellow:#ffd600;
+--rf-yellow-strong:#ffb800;
 }
 
 *{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+margin:0;
+padding:0;
+box-sizing:border-box;
+font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
 }
 
 body{
-  background: radial-gradient(circle at top,#1a1a1a 0%,#000 70%);
-  color:#fff;
+background: radial-gradient(circle at top,#1a1a1a 0%,#000 70%);
+color:#fff;
 }
+
+/* HEADER */
 
 .header{
-  padding:30px 25px 10px;
-  font-size:22px;
-  font-weight:900;
+padding:30px 25px 10px;
+font-size:22px;
+font-weight:900;
 }
+
+/* CONTAINER */
 
 .container{
-  padding:10px 25px 140px;
-  max-width:450px;
-  margin:auto;
+padding:10px 25px 140px;
+max-width:450px;
+margin:auto;
 }
 
+/* CARD */
+
 .card{
-  background:rgba(255,255,255,.06);
-  backdrop-filter:blur(20px);
-  border-radius:26px;
-  padding:22px;
-  margin-bottom:22px;
-  border:1px solid rgba(255,255,255,.08);
+background:rgba(255,255,255,.06);
+backdrop-filter:blur(20px);
+border-radius:26px;
+padding:22px;
+margin-bottom:22px;
+border:1px solid rgba(255,255,255,.08);
 }
 
 .card h3{
-  margin-bottom:14px;
-  font-size:15px;
-  opacity:.8;
+margin-bottom:14px;
+font-size:15px;
+opacity:.8;
 }
 
+/* ROTA */
+
 .rota-item{
-  font-size:15px;
-  margin-bottom:6px;
+font-size:15px;
+margin-bottom:6px;
 }
 
 .rota-item span{
-  opacity:.5;
+opacity:.5;
 }
+
+/* OBS */
 
 textarea{
-  width:100%;
-  border-radius:16px;
-  padding:14px;
-  border:none;
-  background:rgba(255,255,255,.08);
-  color:#fff;
-  resize:none;
-  height:90px;
+width:100%;
+border-radius:16px;
+padding:14px;
+border:none;
+background:rgba(255,255,255,.08);
+color:#fff;
+resize:none;
+height:90px;
 }
 
+/* CATEGORIA */
+
+.categoria{
+display:flex;
+gap:12px;
+}
+
+.cat{
+flex:1;
+padding:16px;
+border-radius:18px;
+text-align:center;
+cursor:pointer;
+background:rgba(255,255,255,.08);
+transition:.25s;
+font-weight:600;
+}
+
+.cat.active{
+background:linear-gradient(135deg,var(--rf-yellow),var(--rf-yellow-strong));
+color:#000;
+box-shadow:0 8px 30px rgba(255,214,0,.4);
+}
+
+/* DETALHAMENTO */
+
 .linha{
-  display:flex;
-  justify-content:space-between;
-  margin-bottom:8px;
-  font-size:14px;
-  opacity:.85;
+display:flex;
+justify-content:space-between;
+margin-bottom:8px;
+font-size:14px;
+opacity:.85;
 }
 
 .total{
-  font-size:22px;
-  font-weight:900;
-  margin-top:14px;
-  color:var(--rf-yellow);
+font-size:22px;
+font-weight:900;
+margin-top:14px;
+color:var(--rf-yellow);
 }
 
 .badge{
-  display:inline-block;
-  padding:6px 10px;
-  border-radius:12px;
-  font-size:11px;
-  background:#ff3b30;
-  margin-top:8px;
+display:inline-block;
+padding:6px 10px;
+border-radius:12px;
+font-size:11px;
+background:#ff3b30;
+margin-top:8px;
 }
 
+/* FOOTER */
+
 .footer{
-  position:fixed;
-  bottom:0;
-  left:0;
-  width:100%;
-  background:#000;
-  padding:20px;
-  box-shadow:0 -10px 30px rgba(0,0,0,.8);
+position:fixed;
+bottom:0;
+left:0;
+width:100%;
+background:#000;
+padding:20px;
+box-shadow:0 -10px 30px rgba(0,0,0,.8);
 }
 
 .footer-inner{
-  max-width:450px;
-  margin:auto;
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
+max-width:450px;
+margin:auto;
+display:flex;
+justify-content:space-between;
+align-items:center;
 }
 
 .valor{
-  font-size:26px;
-  font-weight:900;
-  color:var(--rf-yellow);
+font-size:26px;
+font-weight:900;
+color:var(--rf-yellow);
 }
 
 button{
-  padding:14px 30px;
-  border:none;
-  border-radius:30px;
-  background:linear-gradient(135deg,var(--rf-yellow),var(--rf-yellow-strong));
-  font-weight:800;
-  cursor:pointer;
+padding:14px 30px;
+border:none;
+border-radius:30px;
+background:linear-gradient(135deg,var(--rf-yellow),var(--rf-yellow-strong));
+font-weight:800;
+cursor:pointer;
 }
+
 </style>
 </head>
 
@@ -143,6 +183,14 @@ button{
 <div class="card">
 <h3>Observação ao motorista</h3>
 <textarea id="observacaoInput"></textarea>
+</div>
+
+<div class="card">
+<h3>Categoria</h3>
+<div class="categoria">
+<div class="cat active" id="cat4">Driver 4</div>
+<div class="cat" id="cat6">Driver 6 (+50%)</div>
+</div>
 </div>
 
 <div class="card">
@@ -169,69 +217,147 @@ let { origem, parada, destino, desvioRota, mercado, valor } = corrida;
 let categoriaMult = 1;
 
 function montarRota(){
-  let html = `<div class="rota-item"><span>Origem:</span> ${origem}</div>`;
-  if(parada){
-    html += `<div class="rota-item"><span>Parada:</span> ${parada}</div>`;
-  }
-  html += `<div class="rota-item"><span>Destino:</span> ${destino}</div>`;
-  document.getElementById("rota").innerHTML = html;
+
+let html = `<div class="rota-item"><span>Origem:</span> ${origem}</div>`;
+
+if(parada){
+html += `<div class="rota-item"><span>Parada:</span> ${parada}</div>`;
 }
+
+html += `<div class="rota-item"><span>Destino:</span> ${destino}</div>`;
+
+document.getElementById("rota").innerHTML = html;
+
+}
+
+/* ADICIONAL NOTURNO */
 
 function adicionalNoturno(base){
-  const agora = new Date();
-  const hora = agora.getHours() + agora.getMinutes()/60;
 
-  if(hora >= 22.5 || hora <= 5){
-    if(base <= 24.99) return 4.99;
-    return base * 0.35;
-  }
-  return 0;
+const agora = new Date();
+const hora = agora.getHours() + agora.getMinutes()/60;
+
+if(hora >= 22.5 || hora <= 5){
+
+if(base <= 24.99) return 4.99;
+
+return base * 0.35;
+
 }
+
+return 0;
+
+}
+
+/* CALCULAR */
 
 function calcular(){
 
-  let base = parseFloat(valor);
-  let detalheHTML="";
+let base = parseFloat(valor);
 
-  detalheHTML += `<div class="linha"><span>Base</span><span>R$ ${base.toFixed(2)}</span></div>`;
+let detalheHTML="";
 
-  const noturno = adicionalNoturno(base);
+detalheHTML += `<div class="linha"><span>Base</span><span>R$ ${base.toFixed(2)}</span></div>`;
 
-  if(noturno>0){
-    detalheHTML += `<div class="linha"><span>Adicional Noturno</span><span>R$ ${noturno.toFixed(2)}</span></div>
-                    <div class="badge">Tarifa Noturna Ativa</div>`;
-    base += noturno;
-  }
+/* NOTURNO */
 
-  if(desvioRota){
-    detalheHTML += `<div class="linha"><span>Desvio</span><span>R$ 5,00</span></div>`;
-    base += 5;
-  }
+const noturno = adicionalNoturno(base);
 
-  if(mercado){
-    detalheHTML += `<div class="linha"><span>Saída Mercado</span><span>R$ 3,89</span></div>`;
-    base += 3.89;
-  }
+if(noturno>0){
 
-  /* TAXA SAÍDA DE PRAIA */
+detalheHTML += `<div class="linha"><span>Adicional Noturno</span><span>R$ ${noturno.toFixed(2)}</span></div>
+<div class="badge">Tarifa Noturna Ativa</div>`;
 
-  const praias = ["Gaibu","Calhetas","Itapuama","Enseada"];
-  const dia = new Date().getDay();
+base += noturno;
 
-  if(praias.includes(destino) && (dia === 0 || dia === 6)){
-    detalheHTML += `
-    <div class="linha"><span>Saída de Praia</span><span>R$ 10.00</span></div>
-    <div class="badge">Taxa válida sábados, domingos e feriados</div>`;
-    base += 10;
-  }
-
-  detalheHTML += `<div class="total">Total: R$ ${base.toFixed(2)}</div>`;
-
-  document.getElementById("detalhamento").innerHTML = detalheHTML;
-  document.getElementById("valorFinal").innerText = "R$ "+base.toFixed(2);
-
-  localStorage.setItem("rf_total_final",base.toFixed(2));
 }
+
+/* DESVIO */
+
+if(desvioRota){
+
+detalheHTML += `<div class="linha"><span>Desvio</span><span>R$ 5,00</span></div>`;
+
+base += 5;
+
+}
+
+/* MERCADO */
+
+if(mercado){
+
+detalheHTML += `<div class="linha"><span>Saída Mercado</span><span>R$ 3,89</span></div>`;
+
+base += 3.89;
+
+}
+
+/* SAÍDA PRAIA */
+
+const praias = ["Gaibu","Calhetas","Itapuama","Enseada"];
+
+const dia = new Date().getDay();
+
+if(praias.includes(destino) && (dia === 0 || dia === 6)){
+
+detalheHTML += `
+<div class="linha"><span>Saída de Praia</span><span>R$ 10,00</span></div>
+<div class="badge">Taxa válida sábados e domingos</div>
+`;
+
+base += 10;
+
+}
+
+/* CATEGORIA */
+
+if(categoriaMult>1){
+
+const acrescimo = base * 0.5;
+
+detalheHTML += `<div class="linha"><span>6 Lugares</span><span>R$ ${acrescimo.toFixed(2)}</span></div>`;
+
+base += acrescimo;
+
+}
+
+detalheHTML += `<div class="total">Total: R$ ${base.toFixed(2)}</div>`;
+
+document.getElementById("detalhamento").innerHTML = detalheHTML;
+
+document.getElementById("valorFinal").innerText = "R$ "+base.toFixed(2);
+
+localStorage.setItem("rf_total_final",base.toFixed(2));
+
+}
+
+/* CATEGORIA EVENTOS */
+
+cat4.onclick=()=>{
+
+categoriaMult=1;
+
+cat4.classList.add("active");
+
+cat6.classList.remove("active");
+
+calcular();
+
+}
+
+cat6.onclick=()=>{
+
+categoriaMult=1.5;
+
+cat6.classList.add("active");
+
+cat4.classList.remove("active");
+
+calcular();
+
+}
+
+/* WHATSAPP */
 
 function abrirEscolhaWhatsApp(msg){
 
@@ -266,66 +392,88 @@ WhatsApp Business
 document.body.appendChild(modal);
 
 document.getElementById("waNormal").onclick=()=>{
+
 window.open(`https://wa.me/?text=${texto}`,"_blank");
+
 modal.remove();
+
 };
 
 document.getElementById("waBusiness").onclick=()=>{
+
 window.open(`https://api.whatsapp.com/send?text=${texto}`,"_blank");
+
 modal.remove();
+
 };
 
 }
 
+/* SOLICITAR */
+
 function solicitar(){
 
-  calcular();
+calcular();
 
-  const agora = new Date();
-  const dataFormatada = agora.toLocaleDateString("pt-BR");
-  const horaFormatada = agora.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+const agora = new Date();
 
-  const observacao = document.getElementById("observacaoInput").value.trim();
+const dataFormatada = agora.toLocaleDateString("pt-BR");
 
-  const detalhamentoDiv = document.getElementById("detalhamento");
+const horaFormatada = agora.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
 
-  let linhas = [];
-  detalhamentoDiv.querySelectorAll(".linha").forEach(linha=>{
-      const spans = linha.querySelectorAll("span");
-      if(spans.length===2){
-          linhas.push(`${spans[0].innerText}: ${spans[1].innerText}`);
-      }
-  });
+const observacao = document.getElementById("observacaoInput").value.trim();
 
-  const detalhamentoTexto = linhas.join("\n");
-  const totalFinal = Number(localStorage.getItem("rf_total_final")) || 0;
+const detalhamentoDiv = document.getElementById("detalhamento");
 
-  let blocoObservacao="";
-  if(observacao){
-    blocoObservacao = `
+let linhas=[];
+
+detalhamentoDiv.querySelectorAll(".linha").forEach(linha=>{
+
+const spans = linha.querySelectorAll("span");
+
+if(spans.length===2){
+
+linhas.push(`${spans[0].innerText}: ${spans[1].innerText}`);
+
+}
+
+});
+
+const detalhamentoTexto = linhas.join("\n");
+
+const totalFinal = Number(localStorage.getItem("rf_total_final")) || 0;
+
+let blocoObservacao="";
+
+if(observacao){
+
+blocoObservacao = `
 _____________________________
 *Observações*
 ${observacao}`;
-  }
 
-  let blocoItinerario = `
+}
+
+let blocoItinerario = `
 📍 Origem:
 ${origem}
 `;
 
-  if(parada){
-    blocoItinerario += `
+if(parada){
+
+blocoItinerario += `
 🛑 Parada:
 ${parada}
 `;
-  }
 
-  blocoItinerario += `
+}
+
+blocoItinerario += `
 🏁 Destino:
 ${destino}
 `;
 
-  const msg =
+const msg =
 `*RECIBO DE VIAGEM RF*
 ${dataFormatada}
 ${horaFormatada}
@@ -343,10 +491,12 @@ _____________________________
 _GRUPO RF_
 58.615.336/0001-49`;
 
-  abrirEscolhaWhatsApp(msg);
+abrirEscolhaWhatsApp(msg);
+
 }
 
 montarRota();
+
 calcular();
 
 </script>
