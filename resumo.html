@@ -164,74 +164,64 @@ button{
 const corrida = JSON.parse(localStorage.getItem("rf_corrida_temp"));
 if(!corrida) window.location.href="home.html";
 
-let { origem, parada, destino, valor } = corrida;
+let { origem, parada, destino, desvioRota, mercado, valor } = corrida;
+
+let categoriaMult = 1;
 
 function montarRota(){
   let html = `<div class="rota-item"><span>Origem:</span> ${origem}</div>`;
-
   if(parada){
     html += `<div class="rota-item"><span>Parada:</span> ${parada}</div>`;
   }
-
   html += `<div class="rota-item"><span>Destino:</span> ${destino}</div>`;
-
   document.getElementById("rota").innerHTML = html;
 }
 
 function adicionalNoturno(base){
-
   const agora = new Date();
   const hora = agora.getHours() + agora.getMinutes()/60;
 
   if(hora >= 22.5 || hora <= 5){
-
-    if(base <= 24.99){
-      return 4.99;
-    }
-
+    if(base <= 24.99) return 4.99;
     return base * 0.35;
   }
-
   return 0;
 }
 
 function calcular(){
 
   let base = parseFloat(valor);
-  let detalheHTML = "";
+  let detalheHTML="";
 
   detalheHTML += `<div class="linha"><span>Base</span><span>R$ ${base.toFixed(2)}</span></div>`;
 
   const noturno = adicionalNoturno(base);
 
-  if(noturno > 0){
-
-    detalheHTML += `
-    <div class="linha"><span>Adicional Noturno</span><span>R$ ${noturno.toFixed(2)}</span></div>
-    <div class="badge">Tarifa Noturna Ativa</div>
-    `;
-
+  if(noturno>0){
+    detalheHTML += `<div class="linha"><span>Adicional Noturno</span><span>R$ ${noturno.toFixed(2)}</span></div>
+                    <div class="badge">Tarifa Noturna Ativa</div>`;
     base += noturno;
+  }
+
+  if(desvioRota){
+    detalheHTML += `<div class="linha"><span>Desvio</span><span>R$ 5,00</span></div>`;
+    base += 5;
+  }
+
+  if(mercado){
+    detalheHTML += `<div class="linha"><span>Saída Mercado</span><span>R$ 3,89</span></div>`;
+    base += 3.89;
   }
 
   /* TAXA SAÍDA DE PRAIA */
 
-  const praias = [
-  "Gaibu",
-  "Calhetas",
-  "Itapuama",
-  "Enseada"
-  ];
-
+  const praias = ["Gaibu","Calhetas","Itapuama","Enseada"];
   const dia = new Date().getDay();
 
   if(praias.includes(destino) && (dia === 0 || dia === 6)){
-
     detalheHTML += `
     <div class="linha"><span>Saída de Praia</span><span>R$ 10.00</span></div>
-    <div class="badge">Taxa válida sábados, domingos e feriados. Ida segue valor normal.</div>
-    `;
-
+    <div class="badge">Taxa válida sábados, domingos e feriados</div>`;
     base += 10;
   }
 
@@ -289,37 +279,28 @@ modal.remove();
 
 function solicitar(){
 
+  calcular();
+
   const agora = new Date();
-
   const dataFormatada = agora.toLocaleDateString("pt-BR");
-
-  const horaFormatada = agora.toLocaleTimeString("pt-BR", {
-    hour: "2-digit",
-    minute: "2-digit"
-  });
+  const horaFormatada = agora.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
 
   const observacao = document.getElementById("observacaoInput").value.trim();
 
   const detalhamentoDiv = document.getElementById("detalhamento");
 
   let linhas = [];
-
-  detalhamentoDiv.querySelectorAll(".linha").forEach(linha => {
-
+  detalhamentoDiv.querySelectorAll(".linha").forEach(linha=>{
       const spans = linha.querySelectorAll("span");
-
-      if(spans.length === 2){
+      if(spans.length===2){
           linhas.push(`${spans[0].innerText}: ${spans[1].innerText}`);
       }
-
   });
 
   const detalhamentoTexto = linhas.join("\n");
-
   const totalFinal = Number(localStorage.getItem("rf_total_final")) || 0;
 
-  let blocoObservacao = "";
-
+  let blocoObservacao="";
   if(observacao){
     blocoObservacao = `
 _____________________________
