@@ -231,22 +231,36 @@ if(!corrida) window.location.href="home.html";
 let { origem, parada, destino, valor } = corrida;
 
 function montarRota(){
+
 let html=`<div class="rota-item"><span>Origem:</span> ${origem}</div>`;
-if(parada) html+=`<div class="rota-item"><span>Parada:</span> ${parada}</div>`;
+
+if(parada){
+html+=`<div class="rota-item"><span>Parada:</span> ${parada}</div>`;
+}
+
 html+=`<div class="rota-item"><span>Destino:</span> ${destino}</div>`;
+
 document.getElementById("rota").innerHTML=html;
+
 }
 
 function adicionalNoturno(base){
+
 const agora=new Date();
 const hora=agora.getHours()+agora.getMinutes()/60;
 
 if(hora>=22.5 || hora<=5){
-if(base<=24.99) return 4.99;
+
+if(base<=24.99){
+return 4.99;
+}
+
 return base*0.35;
+
 }
 
 return 0;
+
 }
 
 function calcular(){
@@ -257,37 +271,101 @@ let detalhe="";
 
 detalhe+=`<div class="linha"><span>Rota</span><span>R$ ${base.toFixed(2)}</span></div>`;
 
+/* NOTURNO */
+
 const noturno=adicionalNoturno(base);
 
 if(noturno>0){
+
 detalhe+=`<div class="linha"><span>Adicional Noturno</span><span>R$ ${noturno.toFixed(2)}</span></div>
 <div class="badge">Tarifa Noturna</div>`;
+
 base+=noturno;
+
 }
+
+/* PRAIA */
+
+const saidaPraia=parseFloat(document.getElementById("saidaPraia").value);
+
+if(saidaPraia>0){
+
+detalhe+=`
+<div class="linha">
+<span>Saída de Praia</span>
+<span>R$ ${saidaPraia.toFixed(2)}</span>
+</div>
+`;
+
+taxas+=saidaPraia;
+
+}
+
+/* FEIRA */
 
 const feira=parseFloat(document.getElementById("feira").value);
-const animal=parseFloat(document.getElementById("animal").value);
-const espera=parseFloat(document.getElementById("espera").value);
 
 if(feira>0){
-detalhe+=`<div class="linha"><span>Feira</span><span>R$ ${feira.toFixed(2)}</span></div>`;
+
+detalhe+=`
+<div class="linha">
+<span>Feira</span>
+<span>R$ ${feira.toFixed(2)}</span>
+</div>
+`;
+
 taxas+=feira;
+
 }
+
+/* ANIMAL */
+
+const animal=parseFloat(document.getElementById("animal").value);
 
 if(animal>0){
-detalhe+=`<div class="linha"><span>Animal</span><span>R$ ${animal.toFixed(2)}</span></div>`;
+
+detalhe+=`
+<div class="linha">
+<span>Animal</span>
+<span>R$ ${animal.toFixed(2)}</span>
+</div>
+`;
+
 taxas+=animal;
+
 }
 
+/* ESPERA */
+
+const espera=parseFloat(document.getElementById("espera").value);
+
 if(espera>5){
+
 const taxaEspera=3 + ((espera-5)*0.60);
-detalhe+=`<div class="linha"><span>Espera</span><span>R$ ${taxaEspera.toFixed(2)}</span></div>`;
+
+detalhe+=`
+<div class="linha">
+<span>Espera</span>
+<span>R$ ${taxaEspera.toFixed(2)}</span>
+</div>
+`;
+
 taxas+=taxaEspera;
+
 }
+
+/* SUBTOTAL */
 
 let subtotal=base+taxas;
 
-detalhe+=`<div class="linha"><span>Subtotal</span><span>R$ ${subtotal.toFixed(2)}</span></div>`;
+detalhe+=`
+<div class="linha">
+<span>Subtotal</span>
+<span>R$ ${subtotal.toFixed(2)}</span>
+</div>
+`;
+
+/* PAGAMENTO */
 
 let pagamento=document.getElementById("pagamento").value;
 let total=subtotal;
@@ -300,9 +378,18 @@ if(pagamento==="credito"){
 total=subtotal/0.95;
 }
 
-detalhe+=`<div class="linha"><span>Pagamento</span><span>${pagamento}</span></div>`;
+detalhe+=`
+<div class="linha">
+<span>Pagamento</span>
+<span>${pagamento}</span>
+</div>
+`;
 
-detalhe+=`<div class="total">Total: R$ ${total.toFixed(2)}</div>`;
+detalhe+=`
+<div class="total">
+Total: R$ ${total.toFixed(2)}
+</div>
+`;
 
 document.getElementById("detalhe").innerHTML=detalhe;
 document.getElementById("valorFinal").innerText="R$ "+total.toFixed(2);
@@ -311,9 +398,13 @@ localStorage.setItem("rf_total_final",total.toFixed(2));
 
 }
 
+/* EVENTOS */
+
 document.querySelectorAll("select,input").forEach(e=>{
 e.addEventListener("change",calcular);
 });
+
+/* CONFIRMAR */
 
 function confirmar(){
 
