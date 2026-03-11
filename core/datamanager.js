@@ -1,136 +1,119 @@
 const DataManager = {
 
-  cache: {
-    rotas: null,
-    origens: null
-  },
+  rotas: [],
 
-  // ===== FUNÇÃO INTERNA DE NORMALIZAÇÃO =====
-  normalizar(texto){
-    return texto
-      ?.toString()
-      .trim()
-      .toLowerCase()
-      .normalize("NFD")
-      .replace(/[\u0300-\u036f]/g, "");
-  },
+  arquivos: [
+    "./data/condominio-porto-do-cabo.json",
+    "./data/gaibu.json",
+    "./data/enseadas.json",
+    "./data/setor-4.json",
+    "./data/xareu.json",
+    "./data/itapuama.json",
+    "./data/calhetas.json",
+    "./data/lote-garapu2-lote-dona-amara.json",
+    "./data/cohab.json",
+    "./data/centro-do-cabo.json",
+    "./data/shopping-costa-dourada.json",
+    "./data/aguia-american-club-br-101.json",
+    "./data/empresas.json",
+    "./data/engenhos.json",
+    "./data/interurbanas.json",
+    "./data/interestaduais.json",
+    "./data/lazer-festa.json",
+    "./data/locais.json",
+    "./data/longas-locais.json",
+    "./data/praias.json",
+    "./data/bairro-sao-francisco-baixo.json"
+  ],
 
-  // ===== CARREGAR ORIGENS =====
-  async carregarOrigens(){
-
-    if(this.cache.origens){
-      return this.cache.origens;
-    }
-
-    const arquivos = [
-      "condominio-porto-do-cabo.json",
-      "gaibu.json",
-      "enseadas.json",
-      "setor-4.json",
-      "xareu.json",
-      "itapuama.json",
-      "calhetas.json",
-      "lote-garapu2-lote-dona-amara.json",
-      "cohab.json",
-      "centro-do-cabo.json",
-      "shopping-costa-dourada.json",
-      "aguia-american-club-br-101.json",
-      "empresas.json",
-      "engenhos.json",
-      "hospitais-clinicas.json",
-      "interurbanas.json",
-      "interestaduais.json",
-      "lazer-festa.json",
-      "locais.json",
-      "longas-locais.json",
-      "praias.json",
-      "bairro-sao-francisco-baixo.json"
-    ];
-
-    try{
+  async carregar() {
+    try {
 
       const respostas = await Promise.all(
-        arquivos.map(async nome => {
-          const r = await fetch("data/" + nome);
-          if(!r.ok) return [];
-          return await r.json();
-        })
+        this.arquivos.map(a =>
+          fetch(a).then(r => {
+            if (!r.ok) throw new Error("Falha ao carregar " + a);
+            return r.json();
+          })
+        )
       );
 
-      const rotasBrutas = respostas.flat();
+      this.rotas = respostas.flat();
 
-      this.cache.rotas = rotasBrutas
-        .filter(r => r.origem && r.destino && r.valor)
-        .map(r => ({
-          origem: r.origem.trim(),
-          destino: r.destino.trim(),
-          origemKey: this.normalizar(r.origem),
-          destinoKey: this.normalizar(r.destino),
-          valor: Number(r.valor)
-        }));
+      console.log("✅ Rotas carregadas:", this.rotas.length);
 
-      // GERAR LISTA COMPLETA DE LOCAIS (ORIGENS + DESTINOS)
-      const locais = new Set();
+    } catch (e) {
 
-      this.cache.rotas.forEach(r=>{
-        locais.add(r.origem);
-        locais.add(r.destino);
-      });
+      console.error("❌ Erro ao carregar rotas", e);
+      throw e;
 
-      const origens = [...locais]
-        .sort((a,b)=>a.localeCompare(b,'pt-BR'));
-
-      this.cache.origens = origens;
-
-      return origens;
-
-    }catch(e){
-      console.error("Erro ao carregar rotas:", e);
-      return [];
     }
   },
 
-  // ===== LISTAR DESTINOS (AGORA BIDIRECIONAL) =====
-  listarDestinos(origem){
+  listarOrigens() {
 
-    if(!this.cache.rotas || !origem) return [];
+    const locais = new Set();
 
-    const origemKey = this.normalizar(origem);
+    this.rotas.forEach(r => {
+      locais.add(r.origem);
+      locais.add(r.destino);
+    });
 
-    const destinos = [];
+    return [...locais].sort();
 
-    this.cache.rotas.forEach(r=>{
+  },
 
-      if(r.origemKey === origemKey){
-        destinos.push(r.destino);
+  listarDestinos(local) {
+
+    const destinos = new Set();
+
+    this.rotas.forEach(r => {
+
+      if (r.origem === local) {
+        destinos.add(r.destino);
       }
 
-      if(r.destinoKey === origemKey){
-        destinos.push(r.origem);
+      if (r.destino === local) {
+        destinos.add(r.origem);
       }
 
     });
 
-    return [...new Set(destinos)]
-      .sort((a,b)=>a.localeCompare(b,'pt-BR'));
+    return [...destinos].sort();
+
   },
 
-  // ===== BUSCAR VALOR (IDA OU VOLTA) =====
-  buscarValor(origem, destino){
+  buscarValor(origem, destino) {
 
-    if(!this.cache.rotas || !origem || !destino) return null;
-
-    const o = this.normalizar(origem);
-    const d = this.normalizar(destino);
-
-    const rota = this.cache.rotas.find(r =>
-      (r.origemKey === o && r.destinoKey === d) ||
-      (r.origemKey === d && r.destinoKey === o)
+    let rota = this.rotas.find(
+      r => r.origem === origem && r.destino === destino
     );
 
-    return rota ? rota.valor : null;
+    if (!rota) {
+      rota = this.rotas.find(
+        r => r.origem === destino && r.destino === origem
+      );
+    }
+
+    return rota ? Number(rota.valor) : null;
+
+  },
+
+  calcularValorCompleto(origem, parada, destino) {
+
+    if (!origem || !destino) return null;
+
+    if (!parada) {
+      return this.buscarValor(origem, destino);
+    }
+
+    const trecho1 = this.buscarValor(origem, parada);
+    const trecho2 = this.buscarValor(parada, destino);
+
+    if (trecho1 === null || trecho2 === null) return null;
+
+    return trecho1 + trecho2;
+
   }
 
 };
-
-window.DataManager = DataManager;
