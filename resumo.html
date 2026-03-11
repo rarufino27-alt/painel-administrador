@@ -215,8 +215,6 @@ cursor:pointer;
 
 <body>
 
-<!-- MENU -->
-
 <div class="menu-overlay" id="menuOverlay" onclick="fecharMenu()"></div>
 
 <div class="menu" id="menu">
@@ -224,8 +222,6 @@ cursor:pointer;
 <div class="menu-item" onclick="irPara('home.html')">Nova viagem</div>
 <div class="menu-item" onclick="irPara('termos.html')">Regras do grupo</div>
 </div>
-
-<!-- HEADER -->
 
 <div class="top-white">
 
@@ -293,8 +289,7 @@ cursor:pointer;
 </select>
 
 <p style="font-size:12px;opacity:.7;margin-top:8px">
-Taxa válida para saídas de praia aos sábados, domingos e feriados.  
-A ida mantém o valor normal da tabela.
+Taxa válida para saídas de praia aos sábados, domingos e feriados.
 </p>
 
 </div>
@@ -334,12 +329,10 @@ function irPara(p){
 window.location.href=p;
 }
 
-/* RESTANTE DO SCRIPT ORIGINAL */
-
 const corrida = JSON.parse(localStorage.getItem("rf_corrida_temp"));
 if(!corrida) window.location.href="home.html";
 
-let { origem, parada, destino, valor } = corrida;
+let { origem, parada, destino, valor, categoria = 1 } = corrida;
 
 function montarRota(){
 
@@ -396,31 +389,22 @@ base+=noturno;
 const saidaPraia=parseFloat(document.getElementById("saidaPraia").value);
 
 if(saidaPraia>0){
-
 detalhe+=`<div class="linha"><span>Saída de Praia</span><span>R$ ${saidaPraia.toFixed(2)}</span></div>`;
-
 taxas+=saidaPraia;
-
 }
 
 const feira=parseFloat(document.getElementById("feira").value);
 
 if(feira>0){
-
 detalhe+=`<div class="linha"><span>Feira</span><span>R$ ${feira.toFixed(2)}</span></div>`;
-
 taxas+=feira;
-
 }
 
 const animal=parseFloat(document.getElementById("animal").value);
 
 if(animal>0){
-
 detalhe+=`<div class="linha"><span>Animal</span><span>R$ ${animal.toFixed(2)}</span></div>`;
-
 taxas+=animal;
-
 }
 
 const espera=parseFloat(document.getElementById("espera").value);
@@ -430,12 +414,21 @@ if(espera>5){
 const taxaEspera=3 + ((espera-5)*0.60);
 
 detalhe+=`<div class="linha"><span>Espera</span><span>R$ ${taxaEspera.toFixed(2)}</span></div>`;
-
 taxas+=taxaEspera;
 
 }
 
 let subtotal=base+taxas;
+
+if(categoria>1){
+
+const acrescimo=subtotal*(categoria-1);
+
+detalhe+=`<div class="linha"><span>Categoria 6 lugares</span><span>R$ ${acrescimo.toFixed(2)}</span></div>`;
+
+subtotal=subtotal*categoria;
+
+}
 
 detalhe+=`<div class="linha"><span>Subtotal</span><span>R$ ${subtotal.toFixed(2)}</span></div>`;
 
