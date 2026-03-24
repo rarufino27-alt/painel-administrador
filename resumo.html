@@ -68,6 +68,17 @@
 
 <div class="card">
 
+<div class="card">
+<h3>Horários da viagem</h3>
+
+<label>Horário de Embarque</label>
+<input type="time" id="embarque" class="select">
+
+<label>Horário de Desembarque</label>
+<input type="time" id="desembarque" class="select">
+
+</div>
+  
 <h3>Adicionais da corrida</h3>
 
 <label>Taxa de Feira</label>
@@ -107,11 +118,13 @@
 <div class="footer-inner">
 <div class="valor" id="valorFinal">R$ 0,00</div>
 <div class="cta-area">
-<button onclick="solicitar()">Enviar recibo via Whatsapp</button>
+<button onclick="solicitar()">Gerar Recibo</button>
 </div>
 </div>
 </div>
 
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  
 <script>
 
 (function(){
@@ -280,7 +293,11 @@ document.querySelectorAll("select,input").forEach(e=>{
 e.addEventListener("change",calcular);
 });
 
-function solicitar(){
+  async function gerarPDF(){
+
+const { jsPDF } = window.jspdf;
+
+const doc = new jsPDF();
 
 const agora = new Date();
 
@@ -289,112 +306,130 @@ const hora = agora.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"})
 
 const total = parseFloat(localStorage.getItem("rf_total_final")) || 0;
 
-const pagamento = document.getElementById("pagamento").value;
+// ===== CABEÇALHO =====
+doc.setFontSize(16);
+doc.text("GRUPO DE VIAGENS RF", 20, 20);
 
-let categoriaTexto = "Driver 4 Lugares";
+doc.setFontSize(10);
+doc.text("CNPJ: 58.615.336/0001-49", 20, 28);
+doc.text("Cabo de Santo Agostinho - PE", 20, 34);
 
-if(categoria > 1){
-categoriaTexto = "Driver 6 Lugares";
-}
+doc.setFontSize(12);
+doc.text("RECIBO", 150, 20);
 
-let base = parseFloat(valor) || 0;
-let taxas = 0;
+// ===== LINHA =====
+doc.line(20, 38, 190, 38);
 
-const saidaPraia = parseFloat(document.getElementById("saidaPraia").value)||0;
-taxas += saidaPraia;
+// ===== ITINERÁRIO =====
+doc.setFontSize(11);
+doc.text(`Origem: ${origem}`, 20, 50);
 
-const feira = parseFloat(document.getElementById("feira").value)||0;
-taxas += feira;
-
-const animal = parseFloat(document.getElementById("animal").value)||0;
-taxas += animal;
-
-const espera = parseFloat(document.getElementById("espera").value)||0;
-
-if(espera > 5){
-taxas += 3 + ((espera-5)*0.60);
-}
-
-const noturno = adicionalNoturno(base);
-base += noturno;
-
-let subtotal = base + taxas;
-
-if(categoria > 1){
-subtotal = subtotal * categoria;
-}
-
-let taxaCartao = 0;
-let blocoPagamento = "";
-
-if(pagamento === "debito"){
-taxaCartao = total - subtotal;
-
-blocoPagamento = `
-Acréscimo cartão: R$ ${taxaCartao.toFixed(2)}
-Forma de pagamento: Débito
-`;
-}
-
-if(pagamento === "credito"){
-taxaCartao = total - subtotal;
-
-blocoPagamento = `
-Acréscimo cartão: R$ ${taxaCartao.toFixed(2)}
-Forma de pagamento: Crédito
-`;
-}
-
-let itinerario = `📍 Origem:
-${origem}
-
-`;
+let y = 58;
 
 if(parada){
-itinerario += `🛑 Parada:
-${parada}
-
-`;
+doc.text(`Parada: ${parada}`, 20, y);
+y += 8;
 }
 
-itinerario += `🏁 Destino:
-${destino}`;
+doc.text(`Destino: ${destino}`, 20, y);
+y += 10;
 
-const msg =
-`*RECIBO DE VIAGEM RF*
-${data}
-${hora}
+// ===== HORÁRIOS =====
+doc.text(`Data: ${data}`, 20, y);
+doc.text(`Hora: ${hora}`, 120, y);
 
-_____________________________
-*Detalhamento da viagem*
+y += 10;
 
-Categoria: ${categoriaTexto}
+// ===== DETALHAMENTO =====
+doc.text("Detalhamento:", 20, y);
+y += 8;
 
-${detalhamentoRecibo}
+const linhas = detalhamentoRecibo.split("\n");
 
-Subtotal: R$ ${subtotal.toFixed(2)}
+linhas.forEach(l => {
+doc.text(l, 20, y);
+y += 6;
+});
 
-${blocoPagamento}
+// ===== TOTAL =====
+y += 10;
 
-Total Geral: R$ ${total.toFixed(2)}
+doc.setFontSize(14);
+doc.text(`TOTAL: R$ ${total.toFixed(2)}`, 20, y);
 
-_____________________________
-*ITINERÁRIO*
+// ===== GERAR BLOB =====
+const blob = doc.output("blob");
 
-${itinerario}
+return ([blob], "recibo.pdf", { type: "application/pdf" });
 
-_____________________________
-💰 *Total: R$ ${total.toFixed(2)}*
+}
+  
+async function solicitar(){
 
-_GRUPO RF_
-58.615.336/0001-49`;
+try{
 
-const url = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+const agora = new Date();
 
-window.location.href = url;
+const data = agora.toLocaleDateString("pt-BR");
+const hora = agora.toLocaleTimeString("pt-BR",{hour:"2-digit",minute:"2-digit"});
+
+// total
+const total = localStorage.getItem("rf_total_final") || 0;
+
+// horários (novos)
+const embarque = document.getElementById("embarque")?.value || "-";
+const desembarque = document.getElementById("desembarque")?.value || "-";
+
+// payload completo
+const payload = {
+origem,
+parada,
+destino,
+total,
+detalhes: detalhamentoRecibo,
+data,
+hora,
+embarque,
+desembarque
+};
+
+// requisição pro backend
+const res = await fetch("https://backend-recibo-rf.onrender.com/gerar-recibo", {
+method: "POST",
+headers: {
+"Content-Type": "application/json"
+},
+body: JSON.stringify(payload)
+});
+
+// valida resposta
+if(!res.ok){
+throw new Error("Erro no servidor");
+}
+
+const dataRes = await res.json();
+
+if(!dataRes.link){
+throw new Error("Link não retornado");
+}
+
+const link = dataRes.link;
+
+// mensagem whatsapp
+const msg = `📄 Recibo da sua viagem:\n${link}`;
+
+// abrir whatsapp
+window.location.href = `https://wa.me/?text=${encodeURIComponent(msg)}`;
+
+}catch(e){
+
+console.error("Erro:", e);
+alert("Erro ao gerar recibo. Tente novamente.");
 
 }
 
+}
+  
 montarRota();
 calcular();
 
