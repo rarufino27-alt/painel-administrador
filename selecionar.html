@@ -1,458 +1,311 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+
 <meta charset="UTF-8">
-<title>RF Passageiro</title>
+<title>RF – Resumo</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<script src="core/datamanager.js"></script>
+
+<link rel="stylesheet" href="theme/theme.css">
 
 <style>
-:root{
-  --rf-gold:#D6B85F;
-  --rf-gold-strong:#F4D97A;
-}
-
-*{margin:0;padding:0;box-sizing:border-box;font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;}
 
 body{
-  background: radial-gradient(circle at top,#1A2133 0%,#080A12 70%);
-  color:#fff;
-  overflow-x:hidden;
+margin:0;
+font-family:Arial;
+background:var(--bg);
+color:var(--text);
 }
 
 /* HEADER */
-.header{
-  padding:20px;
-  font-weight:700;
-  font-size:15px;
-  letter-spacing:.5px;
+.top{
+display:flex;
+align-items:center;
+justify-content:space-between;
+padding:16px;
+background:#111;
+border-bottom:1px solid #222;
 }
 
-/* HERO */
-.hero{
-  padding:0 20px;
-  font-size:24px;
-  font-weight:800;
+.logo{
+display:flex;
+align-items:center;
+gap:10px;
+font-weight:bold;
 }
 
-/* RADAR */
-.radar-area{
-  height:240px;
-  display:flex;
-  align-items:center;
-  justify-content:center;
-  position:relative;
+/* CONTAINER */
+.container{
+max-width:420px;
+margin:auto;
+padding:16px;
+display:flex;
+flex-direction:column;
+gap:16px;
 }
 
-.radar{
-  width:200px;
-  height:200px;
-  border-radius:50%;
-  border:2px solid rgba(214,184,95,.5);
-  position:absolute;
-}
-
-.radar::before,
-.radar::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  border-radius:50%;
-  border:2px solid rgba(214,184,95,.3);
-  animation:pulse 3s infinite;
-}
-
-.radar::after{animation-delay:1.5s;}
-
-@keyframes pulse{
-  0%{transform:scale(.8);opacity:.8;}
-  100%{transform:scale(1.6);opacity:0;}
-}
-
-/* SLIDE */
-.slide-card{
-  position:absolute;
-  width:90%;
-  max-width:380px;
-  padding:20px;
-  border-radius:20px;
-  background:linear-gradient(145deg,#151B2B,#0F1422);
-  border:1px solid rgba(214,184,95,.3);
-  text-align:center;
-  box-shadow:0 0 40px rgba(214,184,95,.25);
-  transition:opacity .4s ease, transform .4s ease;
-}
-
-.slide-card h3{
-  color:var(--rf-gold-strong);
-  font-size:16px;
-}
-
-.slide-card p{
-  font-size:13px;
-  opacity:.85;
-  margin-top:6px;
-}
-
-/* CARD INFERIOR */
+/* CARD */
 .card{
-  position:fixed;
-  bottom:0;
-  width:100%;
-  background:linear-gradient(180deg,#151B2B,#0C101B);
-  border-top-left-radius:32px;
-  border-top-right-radius:32px;
-  padding:25px;
-  box-shadow:0 -25px 60px rgba(0,0,0,.9);
+background:var(--card-bg);
+border:1px solid var(--border-color);
+border-radius:16px;
+padding:16px;
+box-shadow:0 10px 30px rgba(0,0,0,.4);
+border:1px solid rgba(255,255,255,.05);
 }
 
-.card-inner{
-  max-width:420px;
-  margin:auto;
-  display:flex;
-  flex-direction:column;
-  gap:14px;
+/* ROTA */
+.rota{
+display:flex;
+justify-content:space-between;
+align-items:center;
 }
 
-.input-box{
-  background:#1C2333;
-  padding:15px;
-  border-radius:16px;
-  display:flex;
-  align-items:center;
-  gap:12px;
-  cursor:pointer;
-  font-size:15px;
+.rota-box{
+flex:1;
 }
 
-.dot{width:10px;height:10px;border-radius:50%;}
-.origem{background:#22c55e;}
-.parada{background:#3b82f6;}
-.destino{background:#ef4444;}
-
-.plus-btn{
-  width:44px;height:44px;
-  border-radius:50%;
-  background:linear-gradient(135deg,var(--rf-gold),var(--rf-gold-strong));
-  display:flex;align-items:center;justify-content:center;
-  font-size:20px;font-weight:700;
-  margin:auto;
-  cursor:pointer;
-  box-shadow:0 0 25px rgba(214,184,95,.5);
+.label{
+font-size:12px;
+color:var(--text-secondary);
 }
 
-.option-btn,
-.radio-option{
-  padding:14px;
-  border-radius:16px;
-  background:#1C2333;
-  border:1px solid rgba(255,255,255,.08);
-  text-align:center;
-  cursor:pointer;
-  font-size:14px;
+.nome{
+font-weight:bold;
 }
 
-.option-btn.active,
-.radio-option.active{
-  border-color:var(--rf-gold);
-  background:rgba(214,184,95,.2);
+/* LINHAS */
+.linha{
+display:flex;
+justify-content:space-between;
+margin:6px 0;
 }
 
-.radio-group{
-  display:flex;
-  gap:10px;
+/* PAGAMENTO */
+.pagamentos{
+display:grid;
+grid-template-columns:1fr 1fr;
+gap:10px;
 }
 
-.preco{
-  padding:16px;
-  border-radius:18px;
-  background:rgba(214,184,95,.2);
-  text-align:center;
-  font-size:15px;
-  display:none;
+.pagamento{
+padding:14px;
+border-radius:12px;
+border:1px solid #333;
+text-align:center;
+cursor:pointer;
+transition:.2s;
 }
 
-.preco strong{
-  font-size:18px;
-  color:var(--rf-gold-strong);
+.pagamento:hover{
+transform:scale(0.97);
+}
+
+.pagamento.ativo{
+border:2px solid #facc15;
+background:rgba(250,204,21,.1);
+color:#facc15;
+}
+
+/* TOTAL */
+.total{
+font-size:28px;
+font-weight:bold;
+color:#facc15;
+margin-top:6px;
+}
+
+/* BOTÕES */
+.botoes{
+display:flex;
+gap:10px;
 }
 
 button{
-  padding:18px;
-  border:none;
-  border-radius:50px;
-  background:linear-gradient(135deg,var(--rf-gold),var(--rf-gold-strong));
-  font-weight:700;
-  font-size:15px;
-  cursor:pointer;
+flex:1;
+padding:16px;
+border:none;
+border-radius:12px;
+font-weight:bold;
+cursor:pointer;
 }
 
-button:disabled{opacity:.4;}
-
-.modal{
-  position:fixed;inset:0;
-  background:rgba(0,0,0,.8);
-  display:none;align-items:center;justify-content:center;
+.btn-wpp{
+background:#16a34a;
+color:#fff;
 }
 
-.modal-content{
-  background:#111522;
-  width:90%;max-width:400px;
-  border-radius:20px;
-  padding:20px;
-  max-height:80vh;
-  overflow:auto;
+.btn-pdf{
+background:#facc15;
+color:#000;
 }
 
-.modal-content div{
-  padding:12px;border-radius:12px;cursor:pointer;
-}
-
-.modal-content div:hover{
-  background:rgba(255,255,255,.08);
-}
 </style>
+
 </head>
 
 <body>
 
-<div class="header">PASSAGEIRO RF</div>
-<div class="hero">Para onde vamos?</div>
-
-<div class="radar-area">
-  <div class="radar"></div>
-  <div class="slide-card" id="slideCard">
-    <h3>Transparência total</h3>
-    <p>Você sabe exatamente o que está pagando.</p>
+<div class="top">
+  <div class="logo">
+    <img src="icons/icon-512.png" width="28">
+    RF MOTORISTA
   </div>
 </div>
 
+<div class="container">
+
+<!-- ROTA -->
+<div class="card rota">
+<div class="rota-box">
+<div class="label">Origem</div>
+<div class="nome" id="origem"></div>
+</div>
+
+<div>→</div>
+
+<div class="rota-box">
+<div class="label">Destino</div>
+<div class="nome" id="destino"></div>
+</div>
+</div>
+
+<!-- DETALHES -->
 <div class="card">
-<div class="card-inner">
-
-  <div class="input-box" id="origemBtn">
-    <div class="dot origem"></div>
-    <div id="origemTexto">Selecionar origem</div>
-  </div>
-
-  <div class="plus-btn" id="plusBtn">+</div>
-
-  <div class="input-box" id="paradaBtn" style="display:none;">
-    <div class="dot parada"></div>
-    <div id="paradaTexto">Selecionar parada</div>
-  </div>
-
-  <div class="input-box" id="destinoBtn">
-    <div class="dot destino"></div>
-    <div id="destinoTexto">Selecionar destino</div>
-  </div>
-
-  <div class="option-btn" id="desvioRotaBtn">Desvio simples (+R$5)</div>
-  <div class="option-btn" id="mercadoBtn">🛒 Saída Mercado (+R$3,89)</div>
-
-  <div class="radio-group">
-    <div class="radio-option" id="carro6Btn">🚐 6 Lugares (+50%)</div>
-    <div class="radio-option" id="excessoBtn">👥 Excesso (+50%)</div>
-  </div>
-
-  <div class="preco" id="precoBox">
-    Total estimado<br>
-    <strong id="precoValor">R$ 0,00</strong>
-  </div>
-
-  <button id="confirmar" disabled>Buscar Motorista</button>
-
-</div>
+<h3>Resumo da viagem</h3>
+<div id="detalhes"></div>
 </div>
 
-<div class="modal" id="modal">
-  <div class="modal-content" id="lista"></div>
+<!-- TAXAS -->
+<div class="card">
+<h3>Taxas adicionais</h3>
+<div id="taxas"></div>
+</div>
+
+<!-- PAGAMENTO -->
+<div class="card">
+<h3>Forma de pagamento</h3>
+
+<div class="pagamentos">
+<div class="pagamento ativo" data="dinheiro">💵 Dinheiro</div>
+<div class="pagamento" data="pix">⚡ PIX</div>
+<div class="pagamento" data="credito">💳 Crédito</div>
+<div class="pagamento" data="debito">🏧 Débito</div>
+</div>
+
+</div>
+
+<!-- TOTAL -->
+<div class="card">
+<div class="label">Total da viagem</div>
+<div class="total" id="total"></div>
+
+<div id="resumoValores"></div>
+</div>
+
+<!-- BOTÕES -->
+<div class="botoes">
+<button class="btn-wpp" onclick="wpp()">WhatsApp</button>
+<button class="btn-pdf" onclick="pdf()">Gerar PDF</button>
+</div>
+
 </div>
 
 <script>
 
-/* REFERÊNCIAS DOM */
-const slideCard = document.getElementById("slideCard");
-const origemBtn = document.getElementById("origemBtn");
-const destinoBtn = document.getElementById("destinoBtn");
-const paradaBtn = document.getElementById("paradaBtn");
-const plusBtn = document.getElementById("plusBtn");
-const desvioRotaBtn = document.getElementById("desvioRotaBtn");
-const mercadoBtn = document.getElementById("mercadoBtn");
-const carro6Btn = document.getElementById("carro6Btn");
-const excessoBtn = document.getElementById("excessoBtn");
-const precoBox = document.getElementById("precoBox");
-const precoValor = document.getElementById("precoValor");
-const confirmar = document.getElementById("confirmar");
-const modal = document.getElementById("modal");
-const lista = document.getElementById("lista");
-const origemTexto = document.getElementById("origemTexto");
-const destinoTexto = document.getElementById("destinoTexto");
-const paradaTexto = document.getElementById("paradaTexto");
+(function(){
+  const tema = localStorage.getItem("rf_theme") || "dark";
+  document.body.setAttribute("data-theme", tema);
+})();
 
-/* SLIDES */
-const slides=[
- {t:"Transparência total",d:"Você sabe exatamente o que está pagando."},
- {t:"Motoristas verificados",d:"Segurança em cada viagem."},
- {t:"Solicite pelo aplicativo",d:"Mais organização e rapidez."}
-];
+/* DADOS */
+const d = JSON.parse(localStorage.getItem("rf_corrida_temp"));
 
-let s=0;
-
-setInterval(()=>{
- s=(s+1)%slides.length;
- slideCard.style.opacity=0;
- slideCard.style.transform="translateY(10px)";
- setTimeout(()=>{
-   slideCard.innerHTML=`<h3>${slides[s].t}</h3><p>${slides[s].d}</p>`;
-   slideCard.style.opacity=1;
-   slideCard.style.transform="translateY(0)";
- },200);
-},4000);
-
-/* LÓGICA */
-
-let origem=null,destino=null,parada=null;
-let usarParada=false,desvioRota=false,usarMercado=false;
-let carro6=false,excesso=false;
-
-async function iniciar(){
- if(window.DataManager){
-   await DataManager.carregarOrigens();
- }
-}
-iniciar();
-
-function calcular(valorBase){
- let adicional=0;
- const agora=new Date();
- const hora=agora.getHours()+(agora.getMinutes()/60);
- const noturno=(hora>=22.5||hora<=5);
-
- if(noturno){
-   if(valorBase<=24.90) adicional=4.99;
-   else adicional=valorBase*0.35;
- }
-
- let subtotal=valorBase+adicional;
- let mult=(carro6||excesso)?1.5:1;
- return Number((subtotal*mult).toFixed(2));
+if(!d){
+alert("Erro nos dados");
+location.href="home.html";
 }
 
-function recalcular(){
- if(!origem||!destino){
-  precoBox.style.display="none";
-  confirmar.disabled=true;
-  return;
- }
+/* ROTA */
+origem.innerText = d.origem;
+destino.innerText = d.destino;
 
- let base=0;
+/* DETALHES */
+detalhes.innerHTML = `
+Veículo: ${d.categoria>1?"6 lugares":"4 lugares"}<br>
+Embarque: ${d.embarque || "-"}<br>
+Obs: ${d.obs || "-"}
+`;
 
- if(usarParada&&parada){
-  base=(DataManager.buscarValor(origem,parada)||0)
-      +(DataManager.buscarValor(parada,destino)||0);
- }else{
-  base=DataManager.buscarValor(origem,destino)||0;
- }
+/* TAXAS */
+taxas.innerHTML = `
+<div class="linha"><span>Feira</span><span>R$ ${d.feira}</span></div>
+<div class="linha"><span>Animal</span><span>R$ ${d.animal}</span></div>
+<div class="linha"><span>Saída Praia</span><span>R$ ${d.saidaPraia}</span></div>
+`;
 
- if(desvioRota) base+=5;
- if(usarMercado) base+=3.89;
+/* TOTAL BASE */
+let totalBase = parseFloat(d.total.replace("R$ ","").replace(",","."));
+let totalFinal = totalBase;
 
- const total=calcular(base);
+/* PAGAMENTO */
+let pagamento = "dinheiro";
 
- precoValor.innerText="R$ "+total.toFixed(2);
- precoBox.style.display="block";
- confirmar.disabled=false;
+function atualizarTotal(){
 
- window.valorFinal=total;
+  totalFinal = totalBase;
+
+  if(pagamento === "credito"){
+    totalFinal = totalBase / 0.95;
+  }
+
+  if(pagamento === "debito"){
+    totalFinal = totalBase / 0.98;
+  }
+
+  total.innerText = "R$ " + totalFinal.toFixed(2);
 }
 
-async function abrir(tipo){
- if((tipo==="destino"||tipo==="parada")&&!origem){
-  alert("Selecione origem primeiro.");
-  return;
- }
+/* INIT */
+atualizarTotal();
 
- modal.style.display="flex";
- lista.innerHTML="";
+/* CLICK PAGAMENTO */
+document.querySelectorAll(".pagamento").forEach(p=>{
+  p.onclick = ()=>{
+    document.querySelectorAll(".pagamento").forEach(x=>x.classList.remove("ativo"));
+    p.classList.add("ativo");
 
- let dados=[];
- if(tipo==="origem") dados=await DataManager.carregarOrigens();
- if(tipo==="destino"||tipo==="parada") dados=DataManager.listarDestinos(origem);
+    pagamento = p.getAttribute("data");
 
- dados.forEach(item=>{
-  const d=document.createElement("div");
-  d.innerText=item;
-  d.onclick=()=>{
-   if(tipo==="origem"){
-    origem=item;destino=null;parada=null;
-    origemTexto.innerText=item;
-    destinoTexto.innerText="Selecionar destino";
-    paradaTexto.innerText="Selecionar parada";
-   }
-   if(tipo==="destino"){destino=item;destinoTexto.innerText=item;}
-   if(tipo==="parada"){parada=item;paradaTexto.innerText=item;}
-   modal.style.display="none";
-   recalcular();
+    atualizarTotal();
   };
-  lista.appendChild(d);
- });
+});
+
+/* RESUMO */
+resumoValores.innerHTML = `
+<div>Base: R$ ${d.base}</div>
+<div>Taxas: R$ ${d.taxas}</div>
+`;
+
+/* WHATS */
+function wpp(){
+
+let msg = `🚗 *RF DRIVER*
+
+📍 ${d.origem} → ${d.destino}
+
+💰 R$ ${totalFinal.toFixed(2)}
+💳 Pagamento: ${pagamento}`;
+
+window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
 }
 
-origemBtn.onclick=()=>abrir("origem");
-destinoBtn.onclick=()=>abrir("destino");
-paradaBtn.onclick=()=>abrir("parada");
-
-plusBtn.onclick=()=>{
- usarParada=!usarParada;
- paradaBtn.style.display=usarParada?"flex":"none";
- recalcular();
-};
-
-desvioRotaBtn.onclick=()=>{
- desvioRota=!desvioRota;
- desvioRotaBtn.classList.toggle("active");
- recalcular();
-};
-
-mercadoBtn.onclick=()=>{
- usarMercado=!usarMercado;
- mercadoBtn.classList.toggle("active");
- recalcular();
-};
-
-carro6Btn.onclick=()=>{
- carro6=true;excesso=false;
- carro6Btn.classList.add("active");
- excessoBtn.classList.remove("active");
- recalcular();
-};
-
-excessoBtn.onclick=()=>{
- excesso=true;carro6=false;
- excessoBtn.classList.add("active");
- carro6Btn.classList.remove("active");
- recalcular();
-};
-
-confirmar.onclick=()=>{
- localStorage.setItem("rf_corrida_temp",JSON.stringify({
-  origem,destino,parada:usarParada?parada:null,
-  desvioRota,mercado:usarMercado,
-  carro6,excesso,total:window.valorFinal
- }));
-
- document.body.style.transition="opacity .25s ease, transform .25s ease";
- document.body.style.opacity="0";
- document.body.style.transform="scale(.98)";
-
- setTimeout(()=>{
-  window.location.href="procurando.html";
- },250);
-};
-
-modal.onclick=(e)=>{if(e.target===modal) modal.style.display="none";};
+/* PDF */
+function pdf(){
+window.open("https://backend-recibo-rf.onrender.com");
+}
 
 </script>
+
 </body>
 </html>
