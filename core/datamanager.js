@@ -3,117 +3,237 @@ const DataManager = {
   rotas: [],
 
   arquivos: [
-    "./data/condominio-porto-do-cabo.json",
-    "./data/gaibu.json",
-    "./data/enseadas.json",
-    "./data/setor-4.json",
-    "./data/xareu.json",
-    "./data/itapuama.json",
-    "./data/calhetas.json",
-    "./data/lote-garapu2-lote-dona-amara.json",
-    "./data/cohab.json",
-    "./data/centro-do-cabo.json",
-    "./data/shopping-costa-dourada.json",
+
+    "./data/Padaria-de-Gilberto-Cruzeiro.json",
     "./data/aguia-american-club-br-101.json",
-    "./data/empresas.json",
-    "./data/engenhos.json",
-    "./data/interurbanas.json",
-    "./data/interestaduais.json",
-    "./data/lazer-festa.json",
-    "./data/locais.json",
-    "./data/longas-locais.json",
-    "./data/praias.json",
-    "./data/bairro-sao-francisco-baixo.json"
+    "./data/bairro-baixo.json",
+    "./data/bairro-alto.json",
+    "./data/calhetas.json",
+    "./data/centro-do-cabo.json",
+    "./data/cohab.json",
+    "./data/santo-inacio.json",
+    "./data/roca.json",
+    "./data/condominio-porto-do-cabo.json",
+    "./data/dharma-ville.json",
+    "./data/enseadas.json",
+    "./data/gaibu.json",
+    "./data/suape.json",
+    "./data/longas.json",
+    "./data/itapuama.json",
+    "./data/lote-garapu2-lote-dona-amara.json",
+    "./data/setor-4.json",
+    "./data/shopping-costinha.json",
+    "./data/xareu.json"
+
   ],
 
-  async carregar() {
-    try {
+  async carregar(){
+
+    try{
 
       const respostas = await Promise.all(
+
         this.arquivos.map(a =>
-          fetch(a).then(r => {
-            if (!r.ok) throw new Error("Falha ao carregar " + a);
-            return r.json();
+          fetch(a + "?v=" + Date.now())
+          .then(r => {
+
+            if(!r.ok){
+              throw new Error("Falha ao carregar " + a)
+            }
+
+            return r.json()
+
           })
         )
-      );
 
-      this.rotas = respostas.flat();
+      )
 
-      console.log("✅ Rotas carregadas:", this.rotas.length);
+      let dados = []
 
-    } catch (e) {
+      // 🔥 SUPORTE AOS 3 FORMATOS
+      respostas.forEach(bloco => {
 
-      console.error("❌ Erro ao carregar rotas", e);
-      throw e;
+        // 🥇 FORMATO 1: ARRAY NORMAL
+        if(Array.isArray(bloco)){
+          dados.push(...bloco)
+        }
+
+        // 🥈 e 🥉 OBJETOS
+        else{
+
+          for(const chave in bloco){
+
+            const valor = bloco[chave]
+
+            // 🥉 FORMATO 3: DESTINO COM GRUPO DE ORIGENS
+            if(valor && Array.isArray(valor.origens)){
+
+              valor.origens.forEach(origem => {
+                dados.push({
+                  origem: origem,
+                  destino: chave,
+                  valor: Number(valor.valor),
+                  regiao: "Cabo"
+                })
+              })
+
+            }
+
+            // 🥈 FORMATO 2: POR ORIGEM
+            else if(Array.isArray(valor)){
+
+              valor.forEach(item => {
+                dados.push({
+                  origem: chave,
+                  destino: item.destino,
+                  valor: Number(item.valor),
+                  regiao: item.regiao || "Cabo"
+                })
+              })
+
+            }
+
+          }
+
+        }
+
+      })
+
+      // 🔥 VALIDAÇÃO
+      dados = this.validarESanitizar(dados)
+
+      this.rotas = dados
+
+      this.criarIndice()
+
+      console.log("✅ Rotas carregadas:", this.rotas.length)
+
+    }catch(e){
+
+      console.error("❌ Erro ao carregar rotas:", e)
 
     }
-  },
-
-  listarOrigens() {
-
-    const locais = new Set();
-
-    this.rotas.forEach(r => {
-      locais.add(r.origem);
-      locais.add(r.destino);
-    });
-
-    return [...locais].sort();
 
   },
 
-  listarDestinos(local) {
+  // 🔥 VALIDADOR PROFISSIONAL
+  validarESanitizar(lista){
 
-    const destinos = new Set();
+    const erros = []
+    const avisos = []
+    const vistos = new Set()
+    const resultado = []
 
-    this.rotas.forEach(r => {
+    lista.forEach((item, index)=>{
 
-      if (r.origem === local) {
-        destinos.add(r.destino);
+      if(
+        !item ||
+        typeof item.origem !== "string" ||
+        typeof item.destino !== "string" ||
+        item.valor === undefined ||
+        typeof item.regiao !== "string"
+      ){
+        erros.push(`Item inválido no índice ${index}`)
+        return
       }
 
-      if (r.destino === local) {
-        destinos.add(r.origem);
+      const origem = item.origem.trim()
+      const destino = item.destino.trim()
+      const valor = Number(item.valor)
+
+      if(isNaN(valor)){
+        erros.push(`Valor inválido em ${origem} -> ${destino}`)
+        return
       }
 
-    });
+      const chave = origem.toLowerCase() + "|" + destino.toLowerCase()
 
-    return [...destinos].sort();
+      if(vistos.has(chave)){
+        avisos.push(`Duplicado ignorado: ${origem} -> ${destino}`)
+        return
+      }
+
+      vistos.add(chave)
+
+      if(origem.toLowerCase() === destino.toLowerCase()){
+        avisos.push(`Origem igual destino: ${origem}`)
+      }
+
+      if(valor <= 0){
+        avisos.push(`Valor suspeito (<=0): ${origem} -> ${destino}`)
+      }
+
+      resultado.push({
+        origem,
+        destino,
+        valor,
+        regiao: item.regiao.trim()
+      })
+
+    })
+
+    if(erros.length){
+      console.error("❌ ERROS GRAVES NO JSON:")
+      erros.forEach(e => console.error(e))
+    }
+
+    if(avisos.length){
+      console.warn("⚠️ AVISOS NO JSON:")
+      avisos.forEach(a => console.warn(a))
+    }
+
+    console.log(`📊 Validação concluída: ${resultado.length} válidos / ${lista.length} total`)
+
+    return resultado
 
   },
 
-  buscarValor(origem, destino) {
+  indice:{},
 
-    let rota = this.rotas.find(
-      r => r.origem === origem && r.destino === destino
-    );
+  criarIndice(){
 
-    if (!rota) {
-      rota = this.rotas.find(
-        r => r.origem === destino && r.destino === origem
-      );
-    }
+    this.indice = {}
 
-    return rota ? Number(rota.valor) : null;
+    this.rotas.forEach(r=>{
+
+      if(!this.indice[r.origem]){
+        this.indice[r.origem] = {}
+      }
+
+      this.indice[r.origem][r.destino] = r.valor
+
+      if(!this.indice[r.destino]){
+        this.indice[r.destino] = {}
+      }
+
+      this.indice[r.destino][r.origem] = r.valor
+
+    })
 
   },
 
-  calcularValorCompleto(origem, parada, destino) {
+  listarOrigens(){
 
-    if (!origem || !destino) return null;
+    return Object.keys(this.indice).sort()
 
-    if (!parada) {
-      return this.buscarValor(origem, destino);
+  },
+
+  listarDestinos(origem){
+
+    if(!this.indice[origem]) return []
+
+    return Object.keys(this.indice[origem]).sort()
+
+  },
+
+  buscarValor(origem,destino){
+
+    if(this.indice[origem] && this.indice[origem][destino]){
+      return this.indice[origem][destino]
     }
 
-    const trecho1 = this.buscarValor(origem, parada);
-    const trecho2 = this.buscarValor(parada, destino);
-
-    if (trecho1 === null || trecho2 === null) return null;
-
-    return trecho1 + trecho2;
+    return null
 
   }
 
-};
+}
