@@ -1,5 +1,4 @@
 <!DOCTYPE html>
-
 <html lang="pt-BR">
 <head>
 
@@ -9,183 +8,674 @@
 
 <script src="core/datamanager.js"></script>
 
+<link rel="stylesheet" href="theme/theme.css">
+<link rel="stylesheet" href="theme/layout.css">
+<link rel="stylesheet" href="theme/components.css">
+
 <style>
+.espaco-final { height:120px; }
 
-/* =========================
-RF UI SYSTEM (ISOLADO)
-========================= */
-
-.rf-body{
-background:#0f0f0f;
-color:#fff;
-font-family:Arial;
+  .add-parada{
+  margin-top:8px;
+  font-size:13px;
+  color:#facc15;
+  cursor:pointer;
 }
 
-/* HEADER */
-.rf-header{
-padding:18px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-border-bottom:1px solid rgba(255,255,255,.05);
+.input-box.yellow{
+  border:1px solid #facc15;
 }
 
-.rf-logo{
-font-size:18px;
-font-weight:bold;
-color:#facc15;
-letter-spacing:1px;
+  /* LIGHT */
+:root{
+  --bg-main:#f3f3f3;
+  --bg-card:#ffffff;
+  --bg-soft:#f9f9f9;
+
+  --text-primary:#000;
+  --text-secondary:#555;
+
+  --border:#e5e5e5;
+
+  --primary:#facc15;
+  --blue:#3b82f6;
+  --green:#22c55e;
+  --red:#ef4444;
+
+  --shadow-soft:0 6px 18px rgba(0,0,0,.08);
 }
 
-.rf-status{
-background:#22c55e;
-padding:5px 12px;
-border-radius:20px;
-font-size:12px;
+/* DARK */
+body[data-theme="dark"]{
+  --bg-main:#0f0f0f;
+  --bg-card:#1c1c1c;
+  --bg-soft:#2a2a2a;
+
+  --text-primary:#fff;
+  --text-secondary:#aaa;
+
+  --border:#333;
+
+  --primary:#facc15;
+}
+ 
+/* GRID 2x2 */
+.pagamento-grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:12px;
 }
 
-/* CONTAINER */
-.rf-container{
-padding:16px;
+/* ITEM */
+.pagamento-item{
+  background:var(--bg-soft);
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:16px;
+  text-align:center;
+  font-weight:bold;
+  cursor:pointer;
+  transition:.2s;
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  align-items:center;
+  justify-content:center;
 }
 
-/* CARD */
-.rf-card{
-background:#1c1c1c;
-border-radius:16px;
-padding:16px;
-box-shadow:0 10px 30px rgba(0,0,0,.4);
-margin-bottom:16px;
+/* HOVER */
+.pagamento-item:hover{
+  transform:scale(0.97);
 }
 
-/* INPUT */
-.rf-input{
-background:#2a2a2a;
-padding:14px;
-border-radius:12px;
-margin-bottom:10px;
-cursor:pointer;
-transition:.2s;
+/* ATIVO (ESTILO PREMIUM) */
+.pagamento-item.ativo{
+  border:2px solid var(--blue);
+  box-shadow:0 0 12px rgba(59,130,246,.3);
+  background:rgba(59,130,246,.08);
 }
-
-.rf-input:hover{
-background:#333;
-}
-
-/* COLORS */
-.rf-green{border-left:4px solid #22c55e;}
-.rf-yellow{border-left:4px solid #facc15;}
-.rf-red{border-left:4px solid #ef4444;}
-
-/* PARADA */
-.rf-add{
-color:#facc15;
-font-size:13px;
-margin-bottom:10px;
-cursor:pointer;
-}
-
-/* VEICULOS */
-.rf-veiculos{
-display:flex;
-gap:10px;
-margin-top:10px;
-}
-
-.rf-veiculo{
-flex:1;
-background:#2a2a2a;
-padding:12px;
-border-radius:12px;
-text-align:center;
-cursor:pointer;
-border:1px solid transparent;
-transition:.2s;
-}
-
-.rf-veiculo.ativo{
-border:1px solid #facc15;
-background:#333;
-}
-
-/* CTA */
-.rf-cta{
-position:fixed;
-bottom:0;
-left:0;
-right:0;
-background:#1c1c1c;
-padding:16px;
-display:flex;
-justify-content:space-between;
-align-items:center;
-border-top:1px solid #333;
-}
-
-.rf-btn{
-background:linear-gradient(90deg,#facc15,#eab308);
-color:#000;
-padding:14px 18px;
-border:none;
-border-radius:12px;
-font-weight:bold;
-cursor:pointer;
-}
-
+ 
 </style>
 
 </head>
 
-<body>
+<body data-theme="dark">
 
-<div class="header">
-  <div class="logo">RF MOTORISTA</div>
-  <div class="status">ATIVO</div>
+<!-- LOADING -->
+<div id="loading" class="loading">
+  <div class="loader"></div>
+  <span>Carregando rotas...</span>
 </div>
 
-<div class="container">
+<!-- MENU -->
+<div class="menu-overlay" id="menuOverlay" onclick="fecharMenu()"></div>
+
+<div class="menu" id="menu">
+  <h3>Menu</h3>
+
+  <div class="menu-item" onclick="irPara('termos.html')">📜 Regras do Grupo RF</div>
+  <div class="menu-item" onclick="irPara('bonus.html')">📜 Regras dos Bônus</div>
+  <div class="menu-item" onclick="irPara('premiacao.html')">🏆 Ranking / Premiação</div>
+  <div class="menu-item" onclick="irPara('historico.html')">📊 Histórico</div>
+  <div class="menu-item" onclick="irPara('configuracoes.html')">⚙️ Configurações</div>
+</div>
+
+<!-- HEADER -->
+<div class="top-white">
+  <div class="logo-area">
+    <img src="icons/icon-512.png" class="logo-img">
+    <span class="logo-text-dark">RF MOTORISTA</span>
+  </div>
+  <div class="menu-btn-dark" onclick="abrirMenu()">☰</div>
+</div>
+
+<div class="app-container">
+
+<!-- BONUS -->
+<div class="bonus-card">
+
+  <div class="bonus-content">
+    <div class="bonus-title">🏆 BÔNUS SEMANAL</div>
+    <div class="bonus-value">R$ 100</div>
+    <div class="bonus-sub">por semana</div>
+  </div>
+
+  <div class="bonus-actions">
+    <button onclick="irPara('bonus.html')">Regras</button>
+    <button onclick="irPara('premiacao.html')">Ranking</button>
+  </div>
+
+</div>
 
 <!-- CARD PRINCIPAL -->
+<div class="card-modern">
 
-<div class="card">
-
-  <div class="input green" id="origemBtn">
-    <div id="origemTexto">Selecionar origem</div>
+  <!-- ORIGEM -->
+  <div class="input-box green" id="origemBtn">
+   <div id="origemTexto">Selecionar origem</div>
   </div>
 
-  <div class="add" id="addParada">+ Adicionar parada</div>
+  <div class="add-parada" id="addParada">+ Adicionar parada</div>
 
-  <div class="input yellow" id="paradaBtn" style="display:none">
-    <div id="paradaTexto">Selecionar parada</div>
+<div class="input-box yellow" id="paradaBtn" style="display:none">
+  <span> </span>
+  <div id="paradaTexto">Selecionar parada</div>
+</div>
+  
+  <!-- DESTINO -->
+  <div class="input-box red" id="destinoBtn">
+     <div id="destinoTexto">Selecionar destino</div>
   </div>
 
-  <div class="input red" id="destinoBtn">
-    <div id="destinoTexto">Selecionar destino</div>
-  </div>
-
-  <!-- VEICULOS -->
-
+  <!-- VEÍCULOS -->
   <div class="veiculos">
-    <div class="veiculo ativo" data-value="1">🚗<br>4 Lugares</div>
-    <div class="veiculo" data-value="1.5">🚐<br>6 Lugares</div>
+
+    <div class="veiculo ativo" data-value="1">
+      🚗
+      <strong>4 lugares</strong>
+      <span>Confortável</span>
+    </div>
+
+    <div class="veiculo" data-value="1.5">
+      🚐
+      <strong>6 lugares</strong>
+      <span>Van espaçosa</span>
+    </div>
+
   </div>
 
+  <input type="hidden" id="tipoCarro" value="1">
+
+</div>
+
+<!-- GARANTIAS -->
+<div class="garantias">
+  <span>✔ Sem Surpresas</span>
+  <span>✔ R$ Fixo</span>
+  <span>✔ Motoristas verificados</span>
 </div>
 
 </div>
 
-<!-- CTA FIXO -->
+<!-- PAGAMENTO -->
+<div class="card">
+  <h3>Forma de pagamento</h3>
 
-<div class="cta">
+  <div class="pagamento-grid">
+
+    <div class="pagamento-item ativo" data="dinheiro">
+      💵
+      <span>Dinheiro</span>
+    </div>
+
+    <div class="pagamento-item" data="pix">
+      ⚡
+      <span>PIX</span>
+    </div>
+
+    <div class="pagamento-item" data="credito">
+      💳
+      <span>Crédito</span>
+    </div>
+
+    <div class="pagamento-item" data="debito">
+      🏧
+      <span>Débito</span>
+    </div>
+
+  </div>
+</div>
+
+<!-- ADICIONAIS -->
+<div class="card">
+  <h3>Adicionais da corrida</h3>
+
+  <label>Taxa de Feira</label>
+  <select id="feira" class="select">
+    <option value="0">Sem Feira</option>
+    <option value="4.99">1 carrinho de Feira</option>
+    <option value="7.99">2 carrinhos de Feira</option>
+  </select>
+
+  <label>Transporte Animal</label>
+  <select id="animal" class="select">
+    <option value="0">Nenhum</option>
+    <option value="4.99">Pequeno</option>
+    <option value="7.99">Médio</option>
+    <option value="11.99">Grande</option>
+  </select>
+
+  <label>Tempo de espera</label>
+  <input type="number" id="espera" class="select" value="0">
+
+  <label>Saída de Praia (sábado, Domingos e Feriados)</label>
+  <select id="saidaPraia" class="select">
+    <option value="0">Não</option>
+    <option value="9.99">Sim</option>
+  </select>
+</div>
+
+<!-- OBS -->
+<div class="card">
+  <h3>Observação ao Passageiro</h3>
+  <textarea id="obs"></textarea>
+</div>
+
+<!-- HORÁRIOS -->
+<div class="card">
+  <h3>Horários do Translado</h3>
+
+  <label>Hora do Embarque</label>
+  <input type="time" id="embarque" class="select">
+
+  <label>Hora do Desembarque</label>
+  <input type="time" id="desembarque" class="select">
+</div>
+
+<div class="espaco-final"></div>
+
+<!-- CTA -->
+<div class="cta-box">
   <div>
-    <div style="font-size:12px;color:#aaa;">Total</div>
+    <span>Total</span>
     <strong id="previewTotal">R$ 0,00</strong>
   </div>
 
-  <button class="btn" id="btnContinuar">
-    Calcular
+  <button id="btnContinuar">
+    Orçamento via Whatsapp→
   </button>
 </div>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <input type="text" id="busca">
+    <div class="lista" id="lista"></div>
+  </div>
+</div>
+
+<script>
+
+/* =========================
+TEMA GLOBAL
+========================= */
+(function(){
+  const tema = localStorage.getItem("rf_theme") || "dark";
+  document.body.setAttribute("data-theme", tema);
+})();
+
+/* =========================
+ELEMENTOS
+========================= */
+const loading = document.getElementById("loading");
+
+const origemBtn = document.getElementById("origemBtn");
+const destinoBtn = document.getElementById("destinoBtn");
+const paradaBtn = document.getElementById("paradaBtn");
+const addParada = document.getElementById("addParada");
+
+const origemTexto = document.getElementById("origemTexto");
+const destinoTexto = document.getElementById("destinoTexto");
+const paradaTexto = document.getElementById("paradaTexto");
+
+const modal = document.getElementById("modal");
+const lista = document.getElementById("lista");
+const busca = document.getElementById("busca");
+
+const previewTotal = document.getElementById("previewTotal");
+
+const feira = document.getElementById("feira");
+const animal = document.getElementById("animal");
+const espera = document.getElementById("espera");
+const saidaPraia = document.getElementById("saidaPraia");
+
+const tipoCarro = document.getElementById("tipoCarro");
+
+const btnContinuar = document.getElementById("btnContinuar");
+
+const obs = document.getElementById("obs");
+const embarque = document.getElementById("embarque");
+const desembarque = document.getElementById("desembarque");
+
+/* =========================
+ESTADO
+========================= */
+let origem = null;
+let destino = null;
+let parada = null;
+let modo = null;
+
+let baseGlobal = 0;
+let taxasGlobal = 0;
+
+let pagamento = "dinheiro";
+
+/* =========================
+INIT
+========================= */
+async function init(){
+  try{
+    await DataManager.carregar();
+  }catch(e){
+    console.error("Erro ao carregar rotas", e);
+  }
+
+  setTimeout(()=>{
+    if(loading) loading.style.display="none";
+  }, 400);
+}
+init();
+
+/* =========================
+MENU
+========================= */
+function abrirMenu(){
+  menu.classList.add("ativo");
+  menuOverlay.style.display="block";
+}
+
+function fecharMenu(){
+  menu.classList.remove("ativo");
+  menuOverlay.style.display="none";
+}
+
+function irPara(p){
+  window.location.href=p;
+}
+
+/* =========================
+PARADA
+========================= */
+if(addParada){
+  addParada.onclick = ()=>{
+    if(!origem){
+      alert("Selecione a origem primeiro.");
+      return;
+    }
+    paradaBtn.style.display = "flex";
+  };
+}
+
+/* =========================
+MODAL
+========================= */
+function abrirModal(tipo){
+
+  modo = tipo;
+  busca.value = "";
+
+  let dados = [];
+
+  if(tipo === "origem"){
+    dados = DataManager.listarOrigens();
+  }
+
+  if(tipo === "parada"){
+    if(!origem){
+      alert("Selecione a origem primeiro");
+      return;
+    }
+
+    dados = DataManager
+      .listarDestinos(origem)
+      .filter(p => {
+        const prox = DataManager.listarDestinos(p);
+        return prox && prox.length > 0;
+      });
+  }
+
+  if(tipo === "destino"){
+    if(!origem){
+      alert("Selecione a origem primeiro");
+      return;
+    }
+
+    dados = parada
+      ? DataManager.listarDestinos(parada)
+      : DataManager.listarDestinos(origem);
+  }
+
+  renderLista(dados);
+  modal.style.display = "flex";
+}
+
+/* =========================
+SELEÇÃO
+========================= */
+function selecionar(valor){
+
+  if(modo === "origem"){
+    origem = valor;
+    parada = null;
+    destino = null;
+
+    origemTexto.innerText = valor;
+    destinoTexto.innerText = "Selecionar destino";
+
+    paradaTexto.innerText = "Selecionar parada";
+    paradaBtn.style.display = "none";
+  }
+
+  if(modo === "parada"){
+    parada = valor;
+    destino = null;
+
+    paradaTexto.innerText = valor;
+    destinoTexto.innerText = "Selecionar destino";
+  }
+
+  if(modo === "destino"){
+    destino = valor;
+    destinoTexto.innerText = valor;
+  }
+
+  calcularPreview();
+}
+
+/* =========================
+EVENTOS
+========================= */
+origemBtn.onclick = ()=>abrirModal("origem");
+destinoBtn.onclick = ()=>abrirModal("destino");
+paradaBtn.onclick = ()=>abrirModal("parada");
+
+modal.onclick = (e)=>{
+  if(e.target === modal) modal.style.display = "none";
+};
+
+/* =========================
+VEÍCULO
+========================= */
+document.querySelectorAll(".veiculo").forEach(v=>{
+  v.onclick = ()=>{
+    document.querySelectorAll(".veiculo").forEach(x=>x.classList.remove("ativo"));
+    v.classList.add("ativo");
+    tipoCarro.value = v.dataset.value;
+    calcularPreview();
+  };
+});
+
+/* =========================
+PAGAMENTO
+========================= */
+document.querySelectorAll(".pagamento-item").forEach(btn=>{
+  btn.onclick = ()=>{
+    document.querySelectorAll(".pagamento-item").forEach(b=>b.classList.remove("ativo"));
+    btn.classList.add("ativo");
+
+    pagamento = btn.getAttribute("data");
+    calcularPreview();
+  };
+});
+
+/* =========================
+CÁLCULO
+========================= */
+function calcularPreview(){
+
+  if(!origem || !destino){
+    previewTotal.innerText = "R$ 0,00";
+    return;
+  }
+
+  let base = 0;
+
+  if(!parada){
+    base = DataManager.buscarValor(origem, destino) || 0;
+  }else{
+    base =
+      (DataManager.buscarValor(origem, parada) || 0) +
+      (DataManager.buscarValor(parada, destino) || 0);
+  }
+
+  let taxas = 0;
+
+  taxas += Number(feira.value || 0);
+  taxas += Number(animal.value || 0);
+  taxas += Number(saidaPraia.value || 0);
+
+  const esperaVal = Number(espera.value || 0);
+  if(esperaVal > 5){
+    taxas += 3 + ((esperaVal - 5) * 0.6);
+  }
+
+  /* NOTURNO (BASE CORRETA) */
+  if(embarque.value){
+    const [h,m] = embarque.value.split(":").map(Number);
+    const minutos = h * 60 + m;
+
+    if(minutos >= 1350 || minutos < 300){
+      if(base <= 24.99){
+        taxas += 5;
+      }else{
+        taxas += base * 0.35;
+      }
+    }
+  }
+
+  let total = base + taxas;
+
+  /* CATEGORIA */
+  const categoria = Number(tipoCarro.value || 1);
+  total *= categoria;
+
+  /* PAGAMENTO */
+  if(pagamento === "credito") total /= 0.95;
+  if(pagamento === "debito") total /= 0.98;
+
+  baseGlobal = base;
+  taxasGlobal = taxas;
+
+  previewTotal.innerText = "R$ " + total.toFixed(2);
+}
+
+/* =========================
+LISTA
+========================= */
+function renderLista(arr){
+  lista.innerHTML = "";
+
+  arr.forEach(item=>{
+    const div = document.createElement("div");
+    div.innerText = item;
+
+    div.onclick = ()=>{
+      selecionar(item);
+      modal.style.display = "none";
+    };
+
+    lista.appendChild(div);
+  });
+}
+
+/* =========================
+BUSCA
+========================= */
+busca.addEventListener("input", ()=>{
+  const termo = busca.value.toLowerCase();
+
+  Array.from(lista.children).forEach(div=>{
+    div.style.display = div.innerText.toLowerCase().includes(termo)
+      ? "block"
+      : "none";
+  });
+});
+
+/* =========================
+AUTO UPDATE
+========================= */
+["feira","animal","espera","saidaPraia","embarque"].forEach(id=>{
+  const el = document.getElementById(id);
+  if(el){
+    el.addEventListener("change", calcularPreview);
+    el.addEventListener("input", calcularPreview);
+  }
+});
+
+/* =========================
+WHATSAPP DIRETO
+========================= */
+btnContinuar.onclick = ()=>{
+
+  if(!origem || !destino){
+    alert("Selecione origem e destino");
+    return;
+  }
+
+  let base = baseGlobal;
+  let taxas = taxasGlobal;
+
+  let total = base + taxas;
+
+  if(pagamento === "credito") total /= 0.95;
+  if(pagamento === "debito") total /= 0.98;
+
+  let msg = `🚖 *Orçamento RF*
+
+📌 Origem
+- ${origem}
+`;
+
+  if(parada){
+    msg += `
+🛑 Parada
+- ${parada}
+`;
+  }
+
+  msg += `
+🏁 Destino
+- ${destino}
+
+💰Subtotal - R$ ${base.toFixed(2)}
+
+______________________
+Detalhes da viagem
+`;
+
+  if(feira.value > 0) msg += `🛒 Feira .......... R$ ${Number(feira.value).toFixed(2)}\n`;
+  if(animal.value > 0) msg += `🐶 Animal ......... R$ ${Number(animal.value).toFixed(2)}\n`;
+  if(saidaPraia.value > 0) msg += `⛱️ Praia .......... R$ ${Number(saidaPraia.value).toFixed(2)}\n`;
+
+  if(espera.value > 5){
+    let esperaCalc = 3 + ((espera.value - 5) * 0.6);
+    msg += `⏱️ Espera ......... R$ ${esperaCalc.toFixed(2)}\n`;
+  }
+
+  msg += `
+💰Taxas - R$ ${taxas.toFixed(2)}
+______________________________
+💳 Pagamento: ${pagamento.toUpperCase()}
+
+💰Total: R$ ${total.toFixed(2)}
+
+_Grupo RF_
+_58.615.336/0001-49_`;
+
+  window.open(`https://wa.me/?text=${encodeURIComponent(msg)}`);
+};
+
+</script>
 
 </body>
 </html>
