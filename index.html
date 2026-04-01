@@ -1,241 +1,163 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+
 <meta charset="UTF-8">
+<title>Dashboard RF</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>RF Passageiro</title>
+
+<script src="core/datamanager.js"></script>
 
 <style>
-
-:root{
-  --rf-gold:#D6B85F;
-  --rf-gold-strong:#F4D97A;
-}
-
-*{
-  margin:0;
-  padding:0;
-  box-sizing:border-box;
-  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
-}
-
-html,body{
-  height:100%;
-}
-
 body{
-  position:relative;
-  overflow:hidden;
-  background: radial-gradient(circle at top,#1A2133 0%,#080A12 70%);
-  display:flex;
-  align-items:center;
-  justify-content:center;
+  font-family:system-ui;
+  margin:0;
+  background:#111;
   color:#fff;
-  animation:fadeIn .4s ease;
 }
-
-/* FUNDO ROTATIVO */
-
-body::before{
-  content:"";
-  position:absolute;
-  top:50%;
-  left:50%;
-  width:160%;
-  height:160%;
-  transform:translate(-50%,-50%);
-  background:radial-gradient(circle, rgba(214,184,95,.15), transparent 70%);
-  animation:rotateBg 18s linear infinite;
-  pointer-events:none;
-}
-
-@keyframes rotateBg{
-  from{transform:translate(-50%,-50%) rotate(0deg);}
-  to{transform:translate(-50%,-50%) rotate(360deg);}
-}
-
-/* CONTAINER */
 
 .container{
-  position:relative;
+  padding:15px;
+}
+
+h1{
   text-align:center;
-  z-index:2;
+  margin-bottom:20px;
 }
 
-/* RADAR */
-
-.radar{
-  position:absolute;
-  width:300px;
-  height:300px;
-  border-radius:50%;
-  border:2px solid rgba(214,184,95,.4);
-  left:50%;
-  top:50%;
-  transform:translate(-50%,-50%);
+.card{
+  background:#1c1c1c;
+  padding:20px;
+  border-radius:16px;
+  margin-bottom:15px;
+  text-align:center;
+  box-shadow:0 4px 12px rgba(0,0,0,0.3);
 }
 
-.radar::before,
-.radar::after{
-  content:"";
-  position:absolute;
-  inset:0;
-  border-radius:50%;
-  border:2px solid rgba(214,184,95,.3);
-  animation:pulse 4s infinite;
+.valor{
+  font-size:24px;
+  font-weight:bold;
+  margin-top:10px;
+  color:#facc15;
 }
 
-.radar::after{
-  animation-delay:2s;
+.btn{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:10px;
+  background:#facc15;
+  font-weight:bold;
+  margin-top:10px;
 }
-
-@keyframes pulse{
-  0%{
-    transform:scale(.7);
-    opacity:.8;
-  }
-  100%{
-    transform:scale(1.6);
-    opacity:0;
-  }
-}
-
-/* GLOW */
-
-.glow{
-  position:absolute;
-  width:260px;
-  height:260px;
-  border-radius:50%;
-  background:radial-gradient(circle,var(--rf-gold),transparent 70%);
-  filter:blur(60px);
-  opacity:.4;
-  left:50%;
-  top:50%;
-  transform:translate(-50%,-50%);
-  animation:glowPulse 4s ease-in-out infinite;
-  pointer-events:none;
-}
-
-@keyframes glowPulse{
-  0%,100%{opacity:.3;}
-  50%{opacity:.6;}
-}
-
-/* LOGO */
-
-.logo{
-  width:160px;
-  max-width:70%;
-  position:relative;
-  z-index:3;
-  opacity:0;
-  transform:scale(.85);
-  animation:logoFast .5s ease forwards, logoFloat 4s ease-in-out infinite 1s;
-}
-
-@keyframes logoFast{
-  to{
-    opacity:1;
-    transform:scale(1);
-  }
-}
-
-@keyframes logoFloat{
-  0%{transform:scale(.95);}
-  50%{transform:scale(1);}
-  100%{transform:scale(.95);}
-}
-
-/* TEXTO */
-
-.tagline{
-  margin-top:25px;
-  font-size:14px;
-  letter-spacing:.5px;
-  opacity:0;
-  animation:textFade 1s ease forwards 1.6s;
-}
-
-@keyframes textFade{
-  to{opacity:.9;}
-}
-
-/* PROGRESS */
-
-.progress{
-  margin-top:30px;
-  width:200px;
-  height:4px;
-  background:rgba(255,255,255,.1);
-  border-radius:6px;
-  overflow:hidden;
-  margin-left:auto;
-  margin-right:auto;
-}
-
-.progress-bar{
-  height:100%;
-  width:0%;
-  background:linear-gradient(90deg,var(--rf-gold),var(--rf-gold-strong));
-  animation:load 4s ease forwards;
-}
-
-@keyframes load{
-  to{width:100%;}
-}
-
-/* FADE OUT */
-
-.fade-out{
-  animation:fadeOut .5s ease forwards;
-}
-
-@keyframes fadeOut{
-  to{
-    opacity:0;
-    transform:scale(.98);
-  }
-}
-
-@keyframes fadeIn{
-  from{opacity:0;}
-  to{opacity:1;}
-}
-
 </style>
+
 </head>
 
 <body>
 
 <div class="container">
 
-  <div class="radar"></div>
-  <div class="glow"></div>
+<h1>📊 Dashboard RF</h1>
 
-  <img src="icons/logo-1024.png" class="logo" alt="RF Passageiro">
+<div class="card">
+  <div>Total de Corridas</div>
+  <div class="valor" id="totalCorridas">0</div>
+</div>
 
-  <div class="tagline">
-    Tabela de Preços RF
-  </div>
+<div class="card">
+  <div>Faturamento Total</div>
+  <div class="valor" id="faturamento">R$ 0</div>
+</div>
 
-  <div class="progress">
-    <div class="progress-bar"></div>
-  </div>
+<div class="card">
+  <div>Corridas Canceladas</div>
+  <div class="valor" id="canceladas">0</div>
+</div>
+
+<div class="card">
+  <div>🏆 Top Motorista</div>
+  <div class="valor" id="topMotorista">-</div>
+</div>
+
+<div class="card">
+  <div>Média por Corrida</div>
+  <div class="valor" id="media">R$ 0</div>
+</div>
+
+<button class="btn" onclick="ir('cadastrar.html')">
+➕ Nova Corrida
+</button>
+
+<button class="btn" onclick="ir('corridas.html')">
+📋 Ver Corridas
+</button>
+
+<button class="btn" onclick="ir('motoristas.html')">
+👤 Motoristas
+</button>
 
 </div>
 
 <script>
 
-/* Splash otimizado (4.5s total) */
+function carregar(){
 
-setTimeout(()=>{
-  document.body.classList.add("fade-out");
-},4000);
+  const data = DataManager.get();
 
-setTimeout(()=>{
-  window.location.href="home.html";
-},4500);
+  const corridas = data.corridas;
+
+  let total = corridas.length;
+  let faturamento = 0;
+  let canceladas = 0;
+
+  const ranking = {};
+
+  corridas.forEach(c => {
+
+    if(c.status === "finalizada"){
+      faturamento += c.valor;
+    } else {
+      canceladas++;
+    }
+
+    if(!ranking[c.motorista]){
+      ranking[c.motorista] = 0;
+    }
+
+    if(c.status === "finalizada"){
+      ranking[c.motorista]++;
+    }
+
+  });
+
+  // TOP MOTORISTA
+  let topNome = "-";
+  let topQtd = 0;
+
+  for(let nome in ranking){
+    if(ranking[nome] > topQtd){
+      topQtd = ranking[nome];
+      topNome = nome + " ("+topQtd+")";
+    }
+  }
+
+  const media = total ? (faturamento / total) : 0;
+
+  // RENDER
+  document.getElementById("totalCorridas").innerText = total;
+  document.getElementById("faturamento").innerText = "R$ " + faturamento.toFixed(2);
+  document.getElementById("canceladas").innerText = canceladas;
+  document.getElementById("topMotorista").innerText = topNome;
+  document.getElementById("media").innerText = "R$ " + media.toFixed(2);
+
+}
+
+function ir(p){
+  window.location.href = p;
+}
+
+carregar();
 
 </script>
 
