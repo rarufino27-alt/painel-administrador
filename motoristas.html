@@ -142,7 +142,7 @@ async function salvar(){
     telefone2: telefone2.value.trim(),
 
     cnh: cnh.value.trim(),
-    ear: ear.value,
+    ear: ear.value === "sim",
 
     modelo: modelo.value.trim(),
     ano: ano.value.trim(),
@@ -195,7 +195,7 @@ async function carregar(){
       ${m.telefone2 ? `<div class="small">📞 ${m.telefone2}</div>` : ""}
 
       <div class="small">CNH: ${m.cnh || "-"}</div>
-      <div class="small">EAR: ${m.ear || "-"}</div>
+      <div class="small">EAR: ${m.ear ? "Sim" : "Não"}</div>
 
       <div class="small">
         🚗 ${m.modelo || "-"} (${m.ano || "-"})
