@@ -96,6 +96,10 @@ body{
 
 <script>
 
+if(localStorage.getItem("admin_logado") !== "true"){
+  window.location.href = "login.html";
+}
+  
 async function carregar(){
 
   const lista = document.getElementById("lista");
