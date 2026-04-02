@@ -3,75 +3,70 @@
 <head>
 
 <meta charset="UTF-8">
-<title>Painel Administrador RF</title>
+<title>RF Motorista</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-<script src="core/supabase.js"></script>
 
 <style>
 
+/* BASE */
 body{
-  font-family:system-ui;
   margin:0;
-  background:#0f172a;
-  color:#e5e7eb;
-}
-
-.header{
-  padding:15px;
-  background:#1e293b;
-  text-align:center;
-  font-weight:700;
-  font-size:18px;
-  border-bottom:1px solid #334155;
-}
-
-.container{
-  padding:15px;
-  max-width:700px;
-  margin:auto;
-}
-
-.grid{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-}
-
-.card{
-  background:#1e293b;
-  padding:15px;
-  border-radius:12px;
-  text-align:center;
-  border:1px solid #334155;
-}
-
-.card.full{
-  grid-column:1 / -1;
-}
-
-.valor{
-  font-size:22px;
-  font-weight:bold;
-  margin-top:8px;
-  color:#22c55e;
-}
-
-.btn{
-  width:100%;
-  padding:14px;
-  border:none;
-  border-radius:10px;
-  background:#3b82f6;
+  height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  background:linear-gradient(135deg,#0f172a,#020617);
+  font-family:system-ui;
   color:#fff;
-  font-weight:600;
-  margin-top:10px;
-  cursor:pointer;
+  overflow:hidden;
 }
 
-.logout{
-  background:#ef4444;
+/* CONTAINER */
+.container{
+  text-align:center;
+}
+
+/* LOGO */
+.logo{
+  width:90px;
+  height:90px;
+  border-radius:20px;
+  margin-bottom:15px;
+  animation:zoom 1s ease;
+}
+
+/* NOME */
+.title{
+  font-size:22px;
+  font-weight:800;
+  margin-bottom:5px;
+}
+
+.sub{
+  font-size:13px;
+  opacity:0.7;
+}
+
+/* LOADING */
+.loader{
+  margin-top:25px;
+  width:40px;
+  height:40px;
+  border:4px solid rgba(255,255,255,0.1);
+  border-top:4px solid #22c55e;
+  border-radius:50%;
+  animation:spin 1s linear infinite;
+}
+
+/* ANIMAÇÕES */
+@keyframes spin{
+  0%{transform:rotate(0deg);}
+  100%{transform:rotate(360deg);}
+}
+
+@keyframes zoom{
+  from{transform:scale(0.5);opacity:0;}
+  to{transform:scale(1);opacity:1;}
 }
 
 </style>
@@ -80,154 +75,33 @@ body{
 
 <body>
 
-<div class="header">
-📊 Painel Administrador RF
-</div>
-
 <div class="container">
 
-<div class="grid">
+<img src="icons/icon-512.png" class="logo">
 
-<div class="card">
-  <div>Total Corridas</div>
-  <div class="valor" id="totalCorridas">0</div>
-</div>
+<div class="title">RF Motorista</div>
+<div class="sub">Painel Administrador</div>
 
-<div class="card">
-  <div>Canceladas</div>
-  <div class="valor" id="canceladas">0</div>
-</div>
-
-<div class="card">
-  <div>Faturamento</div>
-  <div class="valor" id="faturamento">R$ 0</div>
-</div>
-
-<div class="card">
-  <div>Média</div>
-  <div class="valor" id="media">R$ 0</div>
-</div>
-
-<div class="card full">
-  <div>🏆 Top Motorista</div>
-  <div class="valor" id="topMotorista">-</div>
-</div>
-
-</div>
-
-<button class="btn" onclick="ir('cadastrar.html')">
-➕ Nova Corrida
-</button>
-
-<button class="btn" onclick="ir('corridas.html')">
-📋 Corridas
-</button>
-
-<button class="btn" onclick="ir('motoristas.html')">
-👤 Motoristas
-</button>
-
-<button class="btn" onclick="ir('relatorios.html')">
-📊 Relatórios
-</button>
-
-<button class="btn logout" onclick="logout()">Sair</button>
+<div class="loader"></div>
 
 </div>
 
 <script>
 
 /* =========================
-PROTEÇÃO LOGIN
+REDIRECIONAMENTO INTELIGENTE
 ========================= */
-if(localStorage.getItem("admin_logado") !== "true"){
-  window.location.href = "login.html";
-}
 
-function logout(){
-  localStorage.removeItem("admin_logado");
-  window.location.href = "login.html";
-}
+setTimeout(()=>{
 
-/* =========================
-CARREGAR DADOS
-========================= */
-async function carregar(){
-
-  const { data: corridas, error } = await window.supabaseClient
-    .from("corridas")
-    .select("*");
-
-  if(error){
-    console.log(error);
-    return;
+  // verifica login
+  if(localStorage.getItem("admin_logado") === "true"){
+    window.location.href = "dashboard.html";
+  }else{
+    window.location.href = "login.html";
   }
 
-  const { data: motoristas } = await window.supabaseClient
-    .from("motoristas")
-    .select("id, nome");
-
-  const map = {};
-  motoristas.forEach(m => map[m.id] = m.nome);
-
-  let total = corridas.length;
-  let faturamento = 0;
-  let canceladas = 0;
-
-  const ranking = {};
-
-  corridas.forEach(c => {
-
-    if(c.status === "finalizada"){
-      faturamento += Number(c.valor);
-    }else{
-      canceladas++;
-    }
-
-    if(!ranking[c.motorista_id]){
-      ranking[c.motorista_id] = 0;
-    }
-
-    if(c.status === "finalizada"){
-      ranking[c.motorista_id]++;
-    }
-
-  });
-
-  let topNome = "-";
-  let topQtd = 0;
-
-  for(let id in ranking){
-    if(ranking[id] > topQtd){
-      topQtd = ranking[id];
-      topNome = `${map[id] || "Desconhecido"} (${topQtd})`;
-    }
-  }
-
-  const media = total ? faturamento / total : 0;
-
-  document.getElementById("totalCorridas").innerText = total;
-  document.getElementById("canceladas").innerText = canceladas;
-  document.getElementById("faturamento").innerText = "R$ " + faturamento.toFixed(2);
-  document.getElementById("media").innerText = "R$ " + media.toFixed(2);
-  document.getElementById("topMotorista").innerText = topNome;
-
-}
-
-/* =========================
-AUTO ATUALIZAÇÃO
-========================= */
-setInterval(carregar, 5000);
-
-/* =========================
-NAVEGAÇÃO
-========================= */
-function ir(p){
-  window.location.href = p;
-}
-
-/* START */
-carregar();
+}, 2000);
 
 </script>
 
