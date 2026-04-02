@@ -1,0 +1,235 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+
+<meta charset="UTF-8">
+<title>Painel Administrador RF</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="core/supabase.js"></script>
+
+<style>
+
+body{
+  font-family:system-ui;
+  margin:0;
+  background:#0f172a;
+  color:#e5e7eb;
+}
+
+.header{
+  padding:15px;
+  background:#1e293b;
+  text-align:center;
+  font-weight:700;
+  font-size:18px;
+  border-bottom:1px solid #334155;
+}
+
+.container{
+  padding:15px;
+  max-width:700px;
+  margin:auto;
+}
+
+.grid{
+  display:grid;
+  grid-template-columns:1fr 1fr;
+  gap:10px;
+}
+
+.card{
+  background:#1e293b;
+  padding:15px;
+  border-radius:12px;
+  text-align:center;
+  border:1px solid #334155;
+}
+
+.card.full{
+  grid-column:1 / -1;
+}
+
+.valor{
+  font-size:22px;
+  font-weight:bold;
+  margin-top:8px;
+  color:#22c55e;
+}
+
+.btn{
+  width:100%;
+  padding:14px;
+  border:none;
+  border-radius:10px;
+  background:#3b82f6;
+  color:#fff;
+  font-weight:600;
+  margin-top:10px;
+  cursor:pointer;
+}
+
+.logout{
+  background:#ef4444;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="header">
+📊 Painel Administrador RF
+</div>
+
+<div class="container">
+
+<div class="grid">
+
+<div class="card">
+  <div>Total Corridas</div>
+  <div class="valor" id="totalCorridas">0</div>
+</div>
+
+<div class="card">
+  <div>Canceladas</div>
+  <div class="valor" id="canceladas">0</div>
+</div>
+
+<div class="card">
+  <div>Faturamento</div>
+  <div class="valor" id="faturamento">R$ 0</div>
+</div>
+
+<div class="card">
+  <div>Média</div>
+  <div class="valor" id="media">R$ 0</div>
+</div>
+
+<div class="card full">
+  <div>🏆 Top Motorista</div>
+  <div class="valor" id="topMotorista">-</div>
+</div>
+
+</div>
+
+<button class="btn" onclick="ir('cadastrar.html')">
+➕ Nova Corrida
+</button>
+
+<button class="btn" onclick="ir('corridas.html')">
+📋 Corridas
+</button>
+
+<button class="btn" onclick="ir('motoristas.html')">
+👤 Motoristas
+</button>
+
+<button class="btn" onclick="ir('relatorios.html')">
+📊 Relatórios
+</button>
+
+<button class="btn logout" onclick="logout()">Sair</button>
+
+</div>
+
+<script>
+
+/* =========================
+PROTEÇÃO LOGIN
+========================= */
+if(localStorage.getItem("admin_logado") !== "true"){
+  window.location.href = "login.html";
+}
+
+function logout(){
+  localStorage.removeItem("admin_logado");
+  window.location.href = "login.html";
+}
+
+/* =========================
+CARREGAR DADOS
+========================= */
+async function carregar(){
+
+  const { data: corridas, error } = await window.supabaseClient
+    .from("corridas")
+    .select("*");
+
+  if(error){
+    console.log(error);
+    return;
+  }
+
+  const { data: motoristas } = await window.supabaseClient
+    .from("motoristas")
+    .select("id, nome");
+
+  const map = {};
+  motoristas.forEach(m => map[m.id] = m.nome);
+
+  let total = corridas.length;
+  let faturamento = 0;
+  let canceladas = 0;
+
+  const ranking = {};
+
+  corridas.forEach(c => {
+
+    if(c.status === "finalizada"){
+      faturamento += Number(c.valor);
+    }else{
+      canceladas++;
+    }
+
+    if(!ranking[c.motorista_id]){
+      ranking[c.motorista_id] = 0;
+    }
+
+    if(c.status === "finalizada"){
+      ranking[c.motorista_id]++;
+    }
+
+  });
+
+  let topNome = "-";
+  let topQtd = 0;
+
+  for(let id in ranking){
+    if(ranking[id] > topQtd){
+      topQtd = ranking[id];
+      topNome = `${map[id] || "Desconhecido"} (${topQtd})`;
+    }
+  }
+
+  const media = total ? faturamento / total : 0;
+
+  document.getElementById("totalCorridas").innerText = total;
+  document.getElementById("canceladas").innerText = canceladas;
+  document.getElementById("faturamento").innerText = "R$ " + faturamento.toFixed(2);
+  document.getElementById("media").innerText = "R$ " + media.toFixed(2);
+  document.getElementById("topMotorista").innerText = topNome;
+
+}
+
+/* =========================
+AUTO ATUALIZAÇÃO
+========================= */
+setInterval(carregar, 5000);
+
+/* =========================
+NAVEGAÇÃO
+========================= */
+function ir(p){
+  window.location.href = p;
+}
+
+/* START */
+carregar();
+
+</script>
+
+</body>
+</html>
