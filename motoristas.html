@@ -3,41 +3,34 @@
 <head>
 
 <meta charset="UTF-8">
-<title>Painel Administrador RF - Motoristas</title>
+<title>Painel RF - Motoristas</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script src="core/supabase.js"></script>
 
 <style>
 
-/* BASE */
 body{
-  font-family:system-ui;
   margin:0;
+  font-family:system-ui;
   background:#0f172a;
-  color:#e5e7eb;
+  color:#fff;
 }
 
-/* HEADER */
 .header{
   padding:15px;
   background:#1e293b;
   text-align:center;
   font-weight:700;
-  font-size:18px;
-  border-bottom:1px solid #334155;
 }
 
-/* CONTAINER */
 .container{
   padding:15px;
-  max-width:700px;
+  max-width:600px;
   margin:auto;
 }
 
-/* CARD */
 .card{
   background:#1e293b;
   padding:15px;
@@ -46,35 +39,35 @@ body{
   border:1px solid #334155;
 }
 
-/* TOP */
-.top{
-  display:flex;
-  justify-content:space-between;
-  font-weight:700;
-  margin-bottom:6px;
+input, select{
+  width:100%;
+  padding:12px;
+  margin-bottom:10px;
+  border-radius:8px;
+  border:1px solid #334155;
+  background:#0f172a;
+  color:#fff;
 }
 
-/* TEXTO */
-.small{
-  font-size:13px;
-  color:#94a3b8;
-}
-
-/* BOTÃO */
-.btn{
-  margin-top:10px;
-  padding:8px;
+button{
+  width:100%;
+  padding:12px;
   border:none;
   border-radius:8px;
   background:#3b82f6;
   color:#fff;
-  cursor:pointer;
-  width:100%;
+  font-weight:700;
 }
 
-/* STATUS */
-.ok{ color:#22c55e; }
-.bad{ color:#ef4444; }
+.btn-del{
+  background:#ef4444;
+  margin-top:8px;
+}
+
+.small{
+  font-size:13px;
+  color:#94a3b8;
+}
 
 </style>
 
@@ -83,97 +76,101 @@ body{
 <body>
 
 <div class="header">
-👤 Painel Administrador RF
+👤 Motoristas
 </div>
 
 <div class="container">
 
-<h2>Motoristas</h2>
+<!-- CADASTRO -->
+<div class="card">
 
+<h3>Cadastrar Motorista</h3>
+
+<input id="nome" placeholder="Nome completo">
+<input id="cpf" placeholder="CPF">
+<input id="telefone" placeholder="Telefone">
+
+<h4>Veículo</h4>
+
+<input id="modelo" placeholder="Modelo / Marca">
+<input id="ano" placeholder="Ano">
+<input id="placa" placeholder="Placa">
+
+<button onclick="salvar()">Cadastrar</button>
+
+</div>
+
+<!-- LISTA -->
 <div id="lista"></div>
 
 </div>
 
 <script>
 
-if(localStorage.getItem("admin_logado") !== "true"){
-  window.location.href = "login.html";
-}
-  
-async function carregar(){
+async function salvar(){
 
-  const lista = document.getElementById("lista");
+  const nome = document.getElementById("nome").value.trim();
+  const cpf = document.getElementById("cpf").value.trim();
+  const telefone = document.getElementById("telefone").value.trim();
+  const modelo = document.getElementById("modelo").value.trim();
+  const ano = document.getElementById("ano").value.trim();
+  const placa = document.getElementById("placa").value.trim();
 
-  lista.innerHTML = "Carregando...";
-
-  // BUSCAR MOTORISTAS
-  const { data: motoristas, error: erroMotoristas } = await supabase
-    .from("motoristas")
-    .select("*");
-
-  if(erroMotoristas){
-    lista.innerHTML = "Erro ao carregar motoristas";
+  if(!nome){
+    alert("Nome obrigatório");
     return;
   }
 
-  // BUSCAR CORRIDAS
-  const { data: corridas } = await supabase
-    .from("corridas")
-    .select("*");
+  const { error } = await window.supabaseClient
+    .from("motoristas")
+    .insert([{
+      nome,
+      cpf,
+      telefone,
+      modelo,
+      ano,
+      placa
+    }]);
 
-  const ranking = {};
+  if(error){
+    alert("Erro ao salvar");
+    console.log(error);
+    return;
+  }
 
-  // PROCESSAR
-  motoristas.forEach(m => {
+  alert("Motorista cadastrado");
 
-    ranking[m.id] = {
-      nome: m.nome,
-      total: 0,
-      faturamento: 0,
-      dados: m
-    };
+  location.reload();
+}
 
-  });
+async function carregar(){
 
-  corridas.forEach(c => {
+  const { data } = await window.supabaseClient
+    .from("motoristas")
+    .select("*")
+    .order("nome");
 
-    if(!ranking[c.motorista_id]) return;
-
-    if(c.status === "finalizada"){
-      ranking[c.motorista_id].total++;
-      ranking[c.motorista_id].faturamento += Number(c.valor);
-    }
-
-  });
-
-  // ORDENAR
-  const arr = Object.values(ranking)
-    .sort((a,b) => b.total - a.total);
-
+  const lista = document.getElementById("lista");
   lista.innerHTML = "";
 
-  arr.forEach((m, index) => {
+  data.forEach(m => {
 
     const div = document.createElement("div");
     div.className = "card";
 
-    // STATUS SIMPLES (ajustaremos depois)
-    const emDia = true;
-
     div.innerHTML = `
-      <div class="top">
-        <span>${index+1}º ${m.nome}</span>
-        <span>${m.total} corridas</span>
+      <strong>${m.nome}</strong>
+      <div class="small">CPF: ${m.cpf || "-"}</div>
+      <div class="small">Tel: ${m.telefone || "-"}</div>
+
+      <div class="small">
+        🚗 ${m.modelo || "-"} (${m.ano || "-"})
       </div>
 
-      <div class="small">💰 R$ ${m.faturamento.toFixed(2)}</div>
+      <div class="small">Placa: ${m.placa || "-"}</div>
 
-      <div class="small ${emDia ? "ok" : "bad"}">
-        ${emDia ? "✔ Regular" : "❌ Irregular"}
-      </div>
-
-      <button class="btn" onclick="detalhes('${m.dados.id}')">
-        Ver detalhes
+      <button class="btn-del" onclick="excluir('${m.id}')">
+        Excluir
       </button>
     `;
 
@@ -183,36 +180,16 @@ async function carregar(){
 
 }
 
-/* DETALHES */
-async function detalhes(id){
+async function excluir(id){
 
-  const { data: motorista } = await supabase
+  if(!confirm("Excluir motorista?")) return;
+
+  await window.supabaseClient
     .from("motoristas")
-    .select("*")
-    .eq("id", id)
-    .single();
+    .delete()
+    .eq("id", id);
 
-  const { data: corridas } = await supabase
-    .from("corridas")
-    .select("*")
-    .eq("motorista_id", id);
-
-  let texto = `👤 ${motorista.nome}\n\n`;
-
-  texto += `CPF: ${motorista.cpf}\n`;
-  texto += `CNH: ${motorista.cnh}\n\n`;
-
-  texto += `🚗 Veículo:\n`;
-  texto += `${motorista.modelo} - ${motorista.placa}\n\n`;
-
-  texto += `📊 Corridas:\n`;
-
-  corridas.forEach(c => {
-    texto += `${c.origem} → ${c.destino} | R$ ${c.valor}\n`;
-  });
-
-  alert(texto);
-
+  carregar();
 }
 
 carregar();
