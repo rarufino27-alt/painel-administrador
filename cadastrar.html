@@ -114,7 +114,11 @@ button:hover{
 </div>
 
 <script>
-
+  
+if(localStorage.getItem("admin_logado") !== "true"){
+  window.location.href = "login.html";
+}
+  
 /* =========================
 CARREGAR MOTORISTAS
 ========================= */
