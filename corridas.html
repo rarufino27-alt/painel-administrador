@@ -104,7 +104,11 @@ input{
 </div>
 
 <script>
-
+  
+if(localStorage.getItem("admin_logado") !== "true"){
+  window.location.href = "login.html";
+}
+  
 let motoristasMap = {};
 
 /* =========================
