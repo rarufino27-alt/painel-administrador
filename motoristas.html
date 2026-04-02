@@ -39,7 +39,7 @@ body{
   border:1px solid #334155;
 }
 
-input{
+input, select{
   width:100%;
   padding:12px;
   margin-bottom:10px;
@@ -70,8 +70,8 @@ button{
 }
 
 .section{
-  margin-top:10px;
-  font-weight:600;
+  margin-top:12px;
+  font-weight:700;
   font-size:14px;
   opacity:0.8;
 }
@@ -82,9 +82,7 @@ button{
 
 <body>
 
-<div class="header">
-👤 Motoristas
-</div>
+<div class="header">👤 Motoristas</div>
 
 <div class="container">
 
@@ -93,17 +91,33 @@ button{
 
 <h3>Cadastrar Motorista</h3>
 
+<div class="section">Dados Pessoais</div>
+
 <input id="nome" placeholder="Nome completo">
 <input id="cpf" placeholder="CPF">
+<input id="rg" placeholder="RG">
+<input id="endereco" placeholder="Endereço">
 
 <input id="telefone1" placeholder="Telefone principal">
 <input id="telefone2" placeholder="Telefone secundário (opcional)">
+
+<div class="section">Habilitação</div>
+
+<input id="cnh" placeholder="Número da CNH">
+
+<select id="ear">
+  <option value="">EAR na habilitação?</option>
+  <option value="sim">Sim</option>
+  <option value="nao">Não</option>
+</select>
 
 <div class="section">Veículo</div>
 
 <input id="modelo" placeholder="Modelo / Marca">
 <input id="ano" placeholder="Ano">
+<input id="chassi" placeholder="Chassi">
 <input id="placa" placeholder="Placa">
+<input id="cor" placeholder="Cor">
 
 <button onclick="salvar()">Cadastrar</button>
 
@@ -118,39 +132,33 @@ button{
 
 async function salvar(){
 
-  const nome = document.getElementById("nome").value.trim();
-  const cpf = document.getElementById("cpf").value.trim();
-  const telefone1 = document.getElementById("telefone1").value.trim();
-  const telefone2 = document.getElementById("telefone2").value.trim();
+  const data = {
+    nome: nome.value.trim(),
+    cpf: cpf.value.trim(),
+    rg: rg.value.trim(),
+    endereco: endereco.value.trim(),
 
-  const modelo = document.getElementById("modelo").value.trim();
-  const ano = document.getElementById("ano").value.trim();
-  const placa = document.getElementById("placa").value.trim();
+    telefone1: telefone1.value.trim(),
+    telefone2: telefone2.value.trim(),
 
-  if(!nome){
+    cnh: cnh.value.trim(),
+    ear: ear.value,
+
+    modelo: modelo.value.trim(),
+    ano: ano.value.trim(),
+    chassi: chassi.value.trim(),
+    placa: placa.value.trim(),
+    cor: cor.value.trim()
+  };
+
+  if(!data.nome){
     alert("Nome obrigatório");
     return;
   }
 
   const { error } = await window.supabaseClient
     .from("motoristas")
-    .insert([{
-      nome,
-      cpf,
-      telefone1,
-      telefone2,
-      modelo,
-      ano,
-      placa,
-
-      // CAMPOS EXISTENTES NA TABELA (evita erro 400)
-      rg: "",
-      endereco: "",
-      cnh: "",
-      ear: "",
-      chassi: "",
-      cor: ""
-    }]);
+    .insert([data]);
 
   if(error){
     console.log(error);
@@ -181,9 +189,13 @@ async function carregar(){
       <strong>${m.nome}</strong>
 
       <div class="small">CPF: ${m.cpf || "-"}</div>
+      <div class="small">RG: ${m.rg || "-"}</div>
 
       <div class="small">📞 ${m.telefone1 || "-"}</div>
       ${m.telefone2 ? `<div class="small">📞 ${m.telefone2}</div>` : ""}
+
+      <div class="small">CNH: ${m.cnh || "-"}</div>
+      <div class="small">EAR: ${m.ear || "-"}</div>
 
       <div class="small">
         🚗 ${m.modelo || "-"} (${m.ano || "-"})
