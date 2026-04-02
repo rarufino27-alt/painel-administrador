@@ -69,6 +69,8 @@ button{
 </div>
 
 <input id="taxas" type="number" placeholder="Taxas adicionais (opcional)">
+  
+<input type="date" id="dataViagem">  
 
 <label>
   <input type="checkbox" id="noturnoManual">
@@ -325,18 +327,23 @@ async function salvar(){
     return;
   }
 
-  const corrida = {
-    motorista_id,
-    origem: origemSelecionada,
-    destino: destino.value,
-    parada: paradaSelecionada || null,
-    valor: total,
-    taxas: taxas,
-    noturno: noturno,
-    hora_viagem: hora_viagem,
-    status: status.value || "finalizada",
-    data: new Date().toISOString()
-  };
+const data_viagem = document.getElementById("dataViagem").value;
+
+if(!data_viagem){
+  alert("Informe a data da viagem");
+  return;
+}
+
+const corrida = {
+  motorista_id,
+  origem: origem.value,
+  destino: destino.value,
+  valor: total,
+  status: status.value,
+
+  data_viagem: data_viagem,
+  data: new Date().toISOString()
+};
 
   const { error } = await window.supabaseClient
     .from("corridas")
