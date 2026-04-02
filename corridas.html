@@ -3,72 +3,99 @@
 <head>
 
 <meta charset="UTF-8">
-<title>Corridas RF</title>
+<title>Painel Administrador RF - Corridas</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<script src="core/datamanager.js"></script>
+<!-- SUPABASE -->
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="core/supabase.js"></script>
 
 <style>
+
+/* BASE */
 body{
   font-family:system-ui;
   margin:0;
-  background:#111;
-  color:#fff;
+  background:#0f172a;
+  color:#e5e7eb;
 }
 
+/* HEADER */
+.header{
+  padding:15px;
+  background:#1e293b;
+  text-align:center;
+  font-weight:700;
+  border-bottom:1px solid #334155;
+}
+
+/* CONTAINER */
 .container{
   padding:15px;
+  max-width:700px;
+  margin:auto;
 }
 
-h1{
-  text-align:center;
-}
-
+/* INPUT */
 input{
   width:100%;
   padding:12px;
-  margin-bottom:10px;
+  margin-bottom:12px;
   border-radius:8px;
-  border:none;
+  border:1px solid #334155;
+  background:#0f172a;
+  color:#fff;
 }
 
+/* CARD */
 .card{
-  background:#1c1c1c;
+  background:#1e293b;
   padding:15px;
   border-radius:12px;
-  margin-bottom:10px;
+  margin-bottom:12px;
+  border:1px solid #334155;
 }
 
+/* TOP */
 .top{
   display:flex;
   justify-content:space-between;
-  font-weight:bold;
+  font-weight:700;
 }
 
+/* TEXT */
 .small{
   font-size:13px;
-  opacity:0.7;
+  color:#94a3b8;
 }
 
+/* BUTTONS */
 .btn{
   margin-top:10px;
-  padding:8px 10px;
+  padding:8px;
   border:none;
   border-radius:6px;
   cursor:pointer;
+  width:100%;
+  font-weight:600;
 }
 
-.editar{ background:#3b82f6; }
-.excluir{ background:#ef4444; }
+.editar{ background:#3b82f6; color:#fff; }
+.excluir{ background:#ef4444; color:#fff; }
+
 </style>
 
 </head>
 
 <body>
 
+<div class="header">
+📋 Painel Administrador RF
+</div>
+
 <div class="container">
 
-<h1>📋 Corridas</h1>
+<h2>Corridas</h2>
 
 <input id="filtro" placeholder="Buscar por motorista ou grupo">
 
@@ -76,98 +103,113 @@ input{
 
 </div>
 
-<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
-<script src="core/supabase.js"></script>
-  
 <script>
 
-function carregar(){
+let motoristasMap = {};
 
-  const data = DataManager.get();
+/* =========================
+CARREGAR DADOS
+========================= */
+async function carregar(){
+
   const lista = document.getElementById("lista");
-
   const filtro = document.getElementById("filtro").value.toLowerCase();
+
+  lista.innerHTML = "Carregando...";
+
+  // BUSCAR MOTORISTAS
+  const { data: motoristas } = await supabase
+    .from("motoristas")
+    .select("*");
+
+  motoristasMap = {};
+  motoristas.forEach(m => {
+    motoristasMap[m.id] = m.nome;
+  });
+
+  // BUSCAR CORRIDAS
+  const { data: corridas } = await supabase
+    .from("corridas")
+    .select("*")
+    .order("data", { ascending: false });
 
   lista.innerHTML = "";
 
-  data.corridas
-    .slice()
-    .reverse()
-    .forEach(c => {
+  corridas.forEach(c => {
 
-      if(filtro &&
-        !c.motorista.toLowerCase().includes(filtro) &&
-        !c.grupo.toLowerCase().includes(filtro)){
-        return;
-      }
+    const nomeMotorista = motoristasMap[c.motorista_id] || "Desconhecido";
 
-      const div = document.createElement("div");
-      div.className = "card";
+    if(filtro &&
+      !nomeMotorista.toLowerCase().includes(filtro) &&
+      !(c.grupo || "").toLowerCase().includes(filtro)){
+      return;
+    }
 
-      div.innerHTML = `
-        <div class="top">
-          <span>${c.motorista}</span>
-          <span>R$ ${c.valor}</span>
-        </div>
+    const div = document.createElement("div");
+    div.className = "card";
 
-        <div>${c.origem} → ${c.destino}</div>
+    div.innerHTML = `
+      <div class="top">
+        <span>${nomeMotorista}</span>
+        <span>R$ ${Number(c.valor).toFixed(2)}</span>
+      </div>
 
-        <div class="small">
-          ${c.grupo} | ${c.solicitante}
-        </div>
+      <div>${c.origem} → ${c.destino}</div>
 
-        <div class="small">
-          ${c.status === "finalizada" ? "✅ Finalizada" : "❌ Cancelada"}
-        </div>
+      <div class="small">${c.grupo || "-"}</div>
 
-        ${c.status === "cancelada" ? `<div class="small">Motivo: ${c.motivoCancelamento}</div>` : ""}
+      <div class="small">
+        ${c.status === "finalizada" ? "✅ Finalizada" : "❌ Cancelada"}
+      </div>
 
-        <button class="btn editar" onclick="editar(${c.id})">Editar</button>
-        <button class="btn excluir" onclick="excluir(${c.id})">Excluir</button>
-      `;
+      ${c.status === "cancelada" && c.motivo ? 
+        `<div class="small">Motivo: ${c.motivo}</div>` : ""}
 
-      lista.appendChild(div);
+      <button class="btn editar" onclick="editar('${c.id}')">Editar valor</button>
+      <button class="btn excluir" onclick="excluir('${c.id}')">Excluir</button>
+    `;
 
-    });
+    lista.appendChild(div);
+
+  });
 
 }
 
-document.getElementById("filtro").addEventListener("input", carregar);
-
-/* EXCLUIR */
-function excluir(id){
+/* =========================
+EXCLUIR
+========================= */
+async function excluir(id){
 
   if(!confirm("Excluir essa corrida?")) return;
 
-  const data = DataManager.get();
-
-  data.corridas = data.corridas.filter(c => c.id !== id);
-
-  DataManager.save(data);
-
-  carregar();
-}
-
-/* EDITAR */
-function editar(id){
-
-  const data = DataManager.get();
-  const corrida = data.corridas.find(c => c.id === id);
-
-  const novoMotorista = prompt("Motorista:", corrida.motorista);
-  if(novoMotorista === null) return;
-
-  const novoValor = prompt("Valor:", corrida.valor);
-  if(novoValor === null) return;
-
-  corrida.motorista = novoMotorista;
-  corrida.valor = Number(novoValor);
-
-  DataManager.save(data);
+  await supabase
+    .from("corridas")
+    .delete()
+    .eq("id", id);
 
   carregar();
 }
 
+/* =========================
+EDITAR
+========================= */
+async function editar(id){
+
+  const novoValor = prompt("Novo valor:");
+  if(!novoValor) return;
+
+  await supabase
+    .from("corridas")
+    .update({ valor: Number(novoValor) })
+    .eq("id", id);
+
+  carregar();
+}
+
+/* EVENT */
+document.getElementById("filtro").addEventListener("input", carregar);
+
+/* INIT */
 carregar();
 
 </script>
