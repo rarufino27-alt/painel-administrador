@@ -3,46 +3,83 @@
 <head>
 
 <meta charset="UTF-8">
-<title>Login - RF Admin</title>
+<title>Painel RF - Login</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script src="core/supabase.js"></script>
 
 <style>
+
+/* BASE */
 body{
+  margin:0;
   font-family:system-ui;
   background:#0f172a;
-  color:#fff;
   display:flex;
   align-items:center;
   justify-content:center;
   height:100vh;
+  color:#fff;
 }
 
+/* CARD */
 .card{
+  width:90%;
+  max-width:350px;
   background:#1e293b;
-  padding:30px;
-  border-radius:12px;
-  width:300px;
+  padding:25px;
+  border-radius:14px;
+  border:1px solid #334155;
 }
 
+/* TITULO */
+h2{
+  text-align:center;
+  margin-bottom:20px;
+}
+
+/* INPUT */
 input{
   width:100%;
-  padding:12px;
-  margin-bottom:10px;
-  border-radius:8px;
-  border:none;
+  padding:14px;
+  border-radius:10px;
+  border:1px solid #334155;
+  background:#0f172a;
+  color:#fff;
+  margin-bottom:12px;
+  font-size:15px;
 }
 
+/* BOTÃO */
 button{
   width:100%;
-  padding:12px;
+  padding:14px;
+  border:none;
+  border-radius:10px;
   background:#3b82f6;
   color:#fff;
-  border:none;
-  border-radius:8px;
-  font-weight:bold;
+  font-weight:700;
+  font-size:15px;
+  cursor:pointer;
 }
+
+/* STATUS */
+.status{
+  text-align:center;
+  margin-top:10px;
+  font-size:14px;
+  color:#94a3b8;
+}
+
+.erro{
+  color:#ef4444;
+}
+
+.sucesso{
+  color:#22c55e;
+}
+
 </style>
 
 </head>
@@ -53,9 +90,11 @@ button{
 
 <h2>🔐 Painel RF</h2>
 
-<input id="email" placeholder="Email do administrador">
+<input id="email" placeholder="Digite seu email">
 
-<button onclick="login()">Entrar</button>
+<button id="btnLogin" onclick="login()">Entrar</button>
+
+<div id="status" class="status"></div>
 
 </div>
 
@@ -63,22 +102,62 @@ button{
 
 async function login(){
 
-  const email = document.getElementById("email").value;
+  const emailInput = document.getElementById("email");
+  const status = document.getElementById("status");
+  const btn = document.getElementById("btnLogin");
 
-  const { data } = await supabase
-    .from("admins")
-    .select("*")
-    .eq("email", email)
-    .single();
+  const email = emailInput.value.trim();
 
-  if(!data){
-    alert("Acesso negado");
+  if(!email){
+    status.innerHTML = "Digite um email";
+    status.className = "status erro";
     return;
   }
 
-  localStorage.setItem("admin_logado", "true");
+  // estado carregando
+  status.innerHTML = "Verificando acesso...";
+  status.className = "status";
+  btn.disabled = true;
+  btn.innerText = "Entrando...";
 
-  window.location.href = "index.html";
+  try{
+
+    const { data, error } = await supabase
+      .from("admins")
+      .select("*")
+      .eq("email", email);
+
+    if(error){
+      throw error;
+    }
+
+    if(!data || data.length === 0){
+      status.innerHTML = "Acesso negado";
+      status.className = "status erro";
+      btn.disabled = false;
+      btn.innerText = "Entrar";
+      return;
+    }
+
+    // sucesso
+    localStorage.setItem("admin_logado", "true");
+
+    status.innerHTML = "Acesso liberado";
+    status.className = "status sucesso";
+
+    setTimeout(()=>{
+      window.location.href = "index.html";
+    }, 800);
+
+  }catch(e){
+
+    status.innerHTML = "Erro ao conectar";
+    status.className = "status erro";
+
+    btn.disabled = false;
+    btn.innerText = "Entrar";
+
+  }
 
 }
 
