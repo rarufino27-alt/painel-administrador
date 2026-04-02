@@ -1,18 +1,243 @@
-const data_viagem = document.getElementById("dataViagem").value;
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
 
-if(!data_viagem){
-  alert("Informe a data da viagem");
-  return;
+<meta charset="UTF-8">
+<title>Relatórios RF</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
+<script src="core/supabase.js"></script>
+
+<style>
+
+body{
+  margin:0;
+  font-family:system-ui;
+  background:#0f172a;
+  color:#fff;
 }
 
-const corrida = {
-  motorista_id,
-  origem: origem.value,
-  destino: destino.value,
-  valor: total,
-  status: status.value,
+.header{
+  text-align:center;
+  padding:15px;
+  background:#1e293b;
+  font-weight:bold;
+}
 
-  // 👇 AQUI É O QUE VOCÊ PERGUNTOU
-  data_viagem: data_viagem,
-  data: new Date().toISOString()
-};
+.container{
+  padding:15px;
+  max-width:800px;
+  margin:auto;
+}
+
+.card{
+  background:#1e293b;
+  padding:15px;
+  border-radius:12px;
+  margin-bottom:12px;
+}
+
+.title{
+  font-weight:bold;
+  margin-bottom:10px;
+}
+
+.valor{
+  font-size:18px;
+  font-weight:bold;
+  color:#facc15;
+}
+
+.small{
+  font-size:13px;
+  color:#94a3b8;
+}
+
+input, select{
+  width:100%;
+  padding:10px;
+  margin-bottom:10px;
+  border-radius:8px;
+  border:1px solid #334155;
+  background:#020617;
+  color:#fff;
+}
+
+.top1{color:#FFD700;}
+.top2{color:#C0C0C0;}
+.top3{color:#CD7F32;}
+
+</style>
+
+</head>
+
+<body>
+
+<div class="header">📊 Relatórios RF</div>
+
+<div class="container">
+
+<select id="tipo">
+  <option value="geral">Geral</option>
+  <option value="semana">Semana (Seg → Sáb)</option>
+  <option value="domingo">Domingo</option>
+  <option value="mes">Mensal</option>
+</select>
+
+<input type="month" id="mes">
+
+<div id="resumo"></div>
+
+<div id="ranking"></div>
+
+</div>
+
+<script>
+
+let corridas = [];
+
+/* =========================
+CARREGAR
+========================= */
+async function carregar(){
+
+  const { data } = await window.supabaseClient
+    .from("corridas")
+    .select(`*, motoristas(nome)`);
+
+  corridas = data;
+  gerar();
+
+}
+
+/* =========================
+FILTRAR PERÍODO
+========================= */
+function filtrar(){
+
+  const tipo = tipoSelect.value;
+
+  const hoje = new Date();
+
+  if(tipo === "geral") return corridas;
+
+  if(tipo === "domingo"){
+    return corridas.filter(c => {
+      const d = new Date(c.data_viagem);
+      return d.getDay() === 0;
+    });
+  }
+
+  if(tipo === "semana"){
+
+    const inicio = new Date();
+    inicio.setDate(hoje.getDate() - hoje.getDay() + 1); // segunda
+
+    const fim = new Date(inicio);
+    fim.setDate(inicio.getDate() + 5); // sábado
+
+    return corridas.filter(c => {
+      const d = new Date(c.data_viagem);
+      return d >= inicio && d <= fim;
+    });
+  }
+
+  if(tipo === "mes"){
+
+    const mes = mesInput.value;
+
+    if(!mes) return [];
+
+    return corridas.filter(c => c.data_viagem.startsWith(mes));
+  }
+
+}
+
+/* =========================
+GERAR RELATÓRIO
+========================= */
+function gerar(){
+
+  const lista = filtrar();
+
+  let total = 0;
+  let canceladas = 0;
+
+  const ranking = {};
+
+  lista.forEach(c => {
+
+    const nome = c.motoristas?.nome || "Sem nome";
+
+    if(!ranking[nome]){
+      ranking[nome] = {
+        nome,
+        corridas:0,
+        faturamento:0
+      };
+    }
+
+    if(c.status === "finalizada"){
+      total += c.valor;
+      ranking[nome].corridas++;
+      ranking[nome].faturamento += c.valor;
+    }else{
+      canceladas++;
+    }
+
+  });
+
+  const media = lista.length ? total / lista.length : 0;
+
+  resumo.innerHTML = `
+    <div class="card">
+      <div class="title">Resumo</div>
+      <div>Total corridas: ${lista.length}</div>
+      <div class="valor">R$ ${total.toFixed(2)}</div>
+      <div class="small">Canceladas: ${canceladas}</div>
+      <div class="small">Média: R$ ${media.toFixed(2)}</div>
+    </div>
+  `;
+
+  const arr = Object.values(ranking)
+    .sort((a,b)=>b.corridas - a.corridas);
+
+  rankingDiv.innerHTML = "";
+
+  arr.forEach((m, i)=>{
+
+    const classe =
+      i===0?"top1":
+      i===1?"top2":
+      i===2?"top3":"";
+
+    rankingDiv.innerHTML += `
+      <div class="card ${classe}">
+        <strong>${i+1}º ${m.nome}</strong>
+        <div>${m.corridas} corridas</div>
+        <div class="valor">R$ ${m.faturamento.toFixed(2)}</div>
+      </div>
+    `;
+  });
+
+}
+
+/* =========================
+EVENTOS
+========================= */
+const tipoSelect = document.getElementById("tipo");
+const mesInput = document.getElementById("mes");
+const resumo = document.getElementById("resumo");
+const rankingDiv = document.getElementById("ranking");
+
+tipoSelect.onchange = gerar;
+mesInput.onchange = gerar;
+
+/* START */
+carregar();
+
+</script>
+
+</body>
+</html>
