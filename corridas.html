@@ -25,34 +25,13 @@ body{
   background:#1e293b;
 }
 
-/* RESUMO */
-.resumo{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:10px;
-  padding:10px;
-}
-
-.box{
-  background:#1e293b;
-  padding:12px;
-  border-radius:10px;
-  text-align:center;
-}
-
-.valor{
-  font-size:20px;
-  font-weight:bold;
-  color:#facc15;
-}
-
 .container{
   padding:15px;
   max-width:700px;
   margin:auto;
 }
 
-input{
+input, select{
   width:100%;
   padding:10px;
   margin-bottom:10px;
@@ -62,7 +41,6 @@ input{
   color:#fff;
 }
 
-/* CARD */
 .card{
   background:#1e293b;
   padding:15px;
@@ -71,30 +49,23 @@ input{
   border-left:5px solid transparent;
 }
 
-/* STATUS CORES */
-.finalizada{
-  border-left:5px solid #22c55e;
-}
-
-.cancelada{
-  border-left:5px solid #ef4444;
-}
+.finalizada{ border-left:5px solid #22c55e; }
+.cancelada{ border-left:5px solid #ef4444; }
 
 .small{
   font-size:13px;
   color:#94a3b8;
 }
 
-.valor-card{
+.valor{
   font-size:18px;
   font-weight:bold;
   color:#facc15;
-  margin-top:5px;
 }
 
 .btn{
-  margin-top:8px;
-  padding:10px;
+  margin-top:6px;
+  padding:8px;
   border:none;
   border-radius:8px;
   width:100%;
@@ -103,27 +74,7 @@ input{
 
 .edit{ background:#3b82f6; color:#fff; }
 .delete{ background:#ef4444; color:#fff; }
-
-/* MODAL */
-.modal{
-  position:fixed;
-  top:0;
-  left:0;
-  width:100%;
-  height:100%;
-  background:rgba(0,0,0,0.7);
-  display:none;
-  align-items:center;
-  justify-content:center;
-}
-
-.modal-content{
-  background:#1e293b;
-  padding:20px;
-  border-radius:12px;
-  width:90%;
-  max-width:400px;
-}
+.refresh{ background:#22c55e; color:#000; }
 
 </style>
 
@@ -133,119 +84,74 @@ input{
 
 <div class="header">📋 Corridas RF</div>
 
-<!-- RESUMO -->
-<div class="resumo">
-  <div class="box">
-    <div>Total</div>
-    <div class="valor" id="totalFaturado">R$ 0</div>
-  </div>
-
-  <div class="box">
-    <div>Corridas</div>
-    <div class="valor" id="totalCorridas">0</div>
-  </div>
-
-  <div class="box">
-    <div>Canceladas</div>
-    <div class="valor" id="totalCanceladas">0</div>
-  </div>
-
-  <div class="box">
-    <div>Média</div>
-    <div class="valor" id="media">R$ 0</div>
-  </div>
-</div>
-
 <div class="container">
+
+<button class="btn refresh" onclick="carregar()">🔄 Atualizar</button>
 
 <input id="busca" placeholder="Buscar motorista">
 
-<input type="date" id="dataInicio">
-<input type="date" id="dataFim">
+<select id="filtroStatus">
+  <option value="">Todos</option>
+  <option value="finalizada">Finalizadas</option>
+  <option value="cancelada">Canceladas</option>
+</select>
 
 <div id="lista"></div>
 
 </div>
 
-<!-- MODAL -->
-<div class="modal" id="modal">
-  <div class="modal-content">
-
-    <h3>Editar Corrida</h3>
-
-    <input id="editValor" type="number">
-    <input id="editHora" type="time">
-
-    <select id="editStatus">
-      <option value="finalizada">Finalizada</option>
-      <option value="cancelada">Cancelada</option>
-    </select>
-
-    <button class="btn edit" onclick="salvarEdicao()">Salvar</button>
-
-  </div>
-</div>
-
 <script>
 
 let corridas = [];
-let editId = null;
 
 /* =========================
-CARREGAR
+CARREGAR (SEM CACHE)
 ========================= */
 async function carregar(){
 
-  const { data } = await window.supabaseClient
+  const { data, error } = await window.supabaseClient
     .from("corridas")
-    .select(`*, motoristas(nome)`)
-    .order("data", { ascending:false });
+    .select(`
+      *,
+      motoristas(nome)
+    `)
+    .order("data_viagem", { ascending:false });
+
+  if(error){
+    console.log(error);
+    alert("Erro ao carregar");
+    return;
+  }
 
   corridas = data;
-  calcularResumo();
+
   render();
 
 }
 
 /* =========================
-RESUMO
-========================= */
-function calcularResumo(){
-
-  let total = 0;
-  let canceladas = 0;
-
-  corridas.forEach(c => {
-
-    if(c.status === "finalizada"){
-      total += c.valor;
-    }else{
-      canceladas++;
-    }
-
-  });
-
-  const media = corridas.length ? total / corridas.length : 0;
-
-  totalFaturado.innerText = "R$ " + total.toFixed(2);
-  totalCorridas.innerText = corridas.length;
-  totalCanceladas.innerText = canceladas;
-  media.innerText = "R$ " + media.toFixed(2);
-
-}
-
-/* =========================
-RENDER
+RENDER COMPLETO
 ========================= */
 function render(){
 
   const lista = document.getElementById("lista");
   const busca = document.getElementById("busca").value.toLowerCase();
+  const statusFiltro = document.getElementById("filtroStatus").value;
 
   lista.innerHTML = "";
 
   corridas
-    .filter(c => (c.motoristas?.nome || "").toLowerCase().includes(busca))
+    .filter(c => {
+
+      const nome = c.motoristas?.nome || "";
+
+      if(busca && !nome.toLowerCase().includes(busca)) return false;
+
+      if(statusFiltro && c.status !== statusFiltro) return false;
+
+      return true;
+
+    })
     .forEach(c => {
 
       let rota = `${c.origem} → ${c.destino}`;
@@ -254,28 +160,30 @@ function render(){
         rota = `${c.origem} → 🛑 ${c.parada} → ${c.destino}`;
       }
 
-      const classeStatus = c.status === "cancelada"
-        ? "cancelada"
-        : "finalizada";
+      const taxas = c.taxas ? `💸 Taxas: R$ ${c.taxas.toFixed(2)}` : "";
+      const noturno = c.noturno ? `🌙 Noturno: R$ ${c.noturno.toFixed(2)}` : "";
 
       const div = document.createElement("div");
-      div.className = "card " + classeStatus;
+      div.className = "card " + (c.status || "finalizada");
 
       div.innerHTML = `
         <strong>${c.motoristas?.nome || "Sem motorista"}</strong>
 
         <div class="small">${rota}</div>
 
-        <div class="valor-card">R$ ${c.valor.toFixed(2)}</div>
+        <div class="valor">R$ ${c.valor.toFixed(2)}</div>
+
+        <div class="small">📅 ${c.data_viagem || "-"}</div>
+        <div class="small">🕒 ${c.hora_viagem || "-"}</div>
+
+        ${taxas ? `<div class="small">${taxas}</div>` : ""}
+        ${noturno ? `<div class="small">${noturno}</div>` : ""}
 
         <div class="small">
-          🕒 ${c.hora_viagem || "-"} | 📅 ${new Date(c.data).toLocaleDateString()}
+          Status: ${c.status || "finalizada"}
         </div>
 
-        <div class="small">Status: ${c.status || "finalizada"}</div>
-
-        <button class="btn edit"
-          onclick="abrirEditar('${c.id}', ${c.valor}, '${c.status}', '${c.hora_viagem || ""}')">
+        <button class="btn edit" onclick="editar('${c.id}')">
           Editar
         </button>
 
@@ -287,41 +195,6 @@ function render(){
       lista.appendChild(div);
 
     });
-
-}
-
-/* =========================
-EDITAR
-========================= */
-function abrirEditar(id, valor, status, hora){
-
-  editId = id;
-
-  editValor.value = valor;
-  editStatus.value = status || "finalizada";
-  editHora.value = hora;
-
-  modal.style.display = "flex";
-
-}
-
-async function salvarEdicao(){
-
-  const valor = Number(editValor.value);
-  const status = editStatus.value;
-  const hora = editHora.value;
-
-  await window.supabaseClient
-    .from("corridas")
-    .update({
-      valor,
-      status,
-      hora_viagem: hora
-    })
-    .eq("id", editId);
-
-  modal.style.display = "none";
-  carregar();
 
 }
 
@@ -345,10 +218,14 @@ async function excluir(id){
 EVENTOS
 ========================= */
 busca.oninput = render;
+filtroStatus.onchange = render;
 
 /* =========================
-START
+AUTO REFRESH (A CADA 5s)
 ========================= */
+setInterval(carregar, 5000);
+
+/* START */
 carregar();
 
 </script>
