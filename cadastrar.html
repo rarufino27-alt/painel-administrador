@@ -8,6 +8,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script src="core/supabase.js"></script>
+<script src="core/datamanager.js"></script>
 
 <style>
 body{
@@ -41,8 +42,11 @@ button{
   color:#000;
 }
 
-.hidden{
-  display:none;
+.box{
+  background:#1e293b;
+  padding:12px;
+  border-radius:10px;
+  margin-bottom:10px;
 }
 </style>
 
@@ -52,10 +56,27 @@ button{
 
 <h2>🚗 Nova Corrida</h2>
 
-<input id="origem" placeholder="Origem">
-<input id="destino" placeholder="Destino">
+<select id="origem"></select>
+<select id="destino"></select>
 
-<input id="valor" type="number" placeholder="Valor">
+<div class="box">
+  Valor base: R$ <span id="valorBase">0.00</span>
+</div>
+
+<input id="taxas" type="number" placeholder="Taxas adicionais (opcional)">
+
+<label>
+  <input type="checkbox" id="noturnoManual">
+  Aplicar adicional noturno
+</label>
+
+<div class="box">
+  🌙 Adicional noturno: R$ <span id="noturno">0.00</span>
+</div>
+
+<div class="box">
+  💰 Valor final: R$ <span id="total">0.00</span>
+</div>
 
 <!-- MOTORISTA -->
 <select id="motorista">
@@ -72,8 +93,119 @@ button{
 
 <script>
 
-let motoristasMap = {}; // id → nome
+let valorBase = 0;
 
+// 🔥 INIT
+async function iniciar(){
+
+  await DataManager.carregar();
+
+  popularOrigens();
+  carregarMotoristas();
+
+}
+
+// 🔥 ORIGENS
+function popularOrigens(){
+
+  const origemSelect = document.getElementById("origem");
+
+  const origens = DataManager.listarOrigens();
+
+  origemSelect.innerHTML = '<option value="">Selecione origem</option>';
+
+  origens.forEach(o=>{
+    const opt = document.createElement("option");
+    opt.value = o;
+    opt.innerText = o;
+    origemSelect.appendChild(opt);
+  });
+
+}
+
+// 🔥 DESTINOS
+function atualizarDestinos(){
+
+  const origem = origem.value;
+  const destinoSelect = document.getElementById("destino");
+
+  const destinos = DataManager.listarDestinos(origem);
+
+  destinoSelect.innerHTML = '<option value="">Selecione destino</option>';
+
+  destinos.forEach(d=>{
+    const opt = document.createElement("option");
+    opt.value = d;
+    opt.innerText = d;
+    destinoSelect.appendChild(opt);
+  });
+
+}
+
+// 🔥 CALCULAR VALOR BASE
+function calcular(){
+
+  const o = origem.value;
+  const d = destino.value;
+
+  if(!o || !d) return;
+
+  const valor = DataManager.buscarValor(o, d);
+
+  if(valor === null){
+    alert("Rota não encontrada");
+    return;
+  }
+
+  valorBase = valor;
+
+  document.getElementById("valorBase").innerText = valor.toFixed(2);
+
+  calcularTotal();
+
+}
+
+// 🌙 NOTURNO
+function calcularNoturno(valor){
+
+  const manual = document.getElementById("noturnoManual").checked;
+
+  const agora = new Date();
+  const h = agora.getHours();
+  const m = agora.getMinutes();
+
+  const ehNoturno =
+    manual ||
+    (h === 22 && m >= 30) ||
+    (h >= 23) ||
+    (h < 5);
+
+  if(!ehNoturno) return 0;
+
+  if(valor <= 24.99){
+    return 5;
+  }else{
+    return valor * 0.35;
+  }
+
+}
+
+// 🔥 TOTAL
+function calcularTotal(){
+
+  const taxas = Number(document.getElementById("taxas").value) || 0;
+
+  const adicional = calcularNoturno(valorBase);
+
+  document.getElementById("noturno").innerText = adicional.toFixed(2);
+
+  const total = valorBase + adicional + taxas;
+
+  document.getElementById("total").innerText = total.toFixed(2);
+
+}
+
+// 🔥 MOTORISTAS
 async function carregarMotoristas(){
 
   const { data } = await window.supabaseClient
@@ -83,33 +215,32 @@ async function carregarMotoristas(){
 
   const select = document.getElementById("motorista");
 
-  data.forEach(m => {
-
-    motoristasMap[m.id] = m.nome;
-
+  data.forEach(m=>{
     const opt = document.createElement("option");
-    opt.value = m.id; // 🔥 AQUI É O SEGREDO
+    opt.value = m.id;
     opt.innerText = m.nome;
-
     select.appendChild(opt);
   });
 
 }
 
+// 🔥 SALVAR
 async function salvar(){
 
-  const motorista_id = document.getElementById("motorista").value;
+  const motorista_id = motorista.value;
 
   if(!motorista_id){
     alert("Selecione o motorista");
     return;
   }
 
+  const total = parseFloat(document.getElementById("total").innerText);
+
   const corrida = {
-    motorista_id: motorista_id,
-    origem: origem.value.trim(),
-    destino: destino.value.trim(),
-    valor: Number(valor.value),
+    motorista_id,
+    origem: origem.value,
+    destino: destino.value,
+    valor: total,
     status: status.value,
     data: new Date().toISOString()
   };
@@ -129,7 +260,14 @@ async function salvar(){
 
 }
 
-carregarMotoristas();
+// EVENTOS
+origem.onchange = atualizarDestinos;
+destino.onchange = calcular;
+taxas.oninput = calcularTotal;
+noturnoManual.onchange = calcularTotal;
+
+// START
+iniciar();
 
 </script>
 
