@@ -143,6 +143,11 @@ body{
 if(localStorage.getItem("admin_logado") !== "true"){
   window.location.href = "login.html";
 }
+
+function logout(){
+  localStorage.removeItem("admin_logado");
+  window.location.href = "login.html";
+}
   
 async function carregar(){
 
