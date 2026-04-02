@@ -3,51 +3,44 @@
 <head>
 
 <meta charset="UTF-8">
-<title>Painel Administrador RF - Corridas</title>
+<title>Corridas RF</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-<!-- SUPABASE -->
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script src="core/supabase.js"></script>
 
 <style>
 
-/* BASE */
 body{
   font-family:system-ui;
   margin:0;
   background:#0f172a;
-  color:#e5e7eb;
+  color:#fff;
 }
 
-/* HEADER */
 .header{
   padding:15px;
-  background:#1e293b;
   text-align:center;
+  background:#1e293b;
   font-weight:700;
-  border-bottom:1px solid #334155;
 }
 
-/* CONTAINER */
 .container{
   padding:15px;
   max-width:700px;
   margin:auto;
 }
 
-/* INPUT */
 input{
   width:100%;
   padding:12px;
   margin-bottom:12px;
   border-radius:8px;
   border:1px solid #334155;
-  background:#0f172a;
+  background:#020617;
   color:#fff;
 }
 
-/* CARD */
 .card{
   background:#1e293b;
   padding:15px;
@@ -56,32 +49,37 @@ input{
   border:1px solid #334155;
 }
 
-/* TOP */
 .top{
   display:flex;
   justify-content:space-between;
-  font-weight:700;
+  font-weight:bold;
 }
 
-/* TEXT */
 .small{
   font-size:13px;
   color:#94a3b8;
 }
 
-/* BUTTONS */
+.status-ok{
+  color:#22c55e;
+}
+
+.status-bad{
+  color:#ef4444;
+}
+
 .btn{
   margin-top:10px;
-  padding:8px;
+  padding:8px 10px;
   border:none;
   border-radius:6px;
   cursor:pointer;
-  width:100%;
-  font-weight:600;
 }
 
-.editar{ background:#3b82f6; color:#fff; }
-.excluir{ background:#ef4444; color:#fff; }
+.excluir{
+  background:#ef4444;
+  color:#fff;
+}
 
 </style>
 
@@ -89,63 +87,53 @@ input{
 
 <body>
 
-<div class="header">
-📋 Painel Administrador RF
-</div>
+<div class="header">📋 Corridas</div>
 
 <div class="container">
 
-<h2>Corridas</h2>
-
-<input id="filtro" placeholder="Buscar por motorista ou grupo">
+<input id="filtro" placeholder="Buscar por motorista..." oninput="carregar()">
 
 <div id="lista"></div>
 
 </div>
 
 <script>
-  
-if(localStorage.getItem("admin_logado") !== "true"){
-  window.location.href = "login.html";
-}
-  
-let motoristasMap = {};
 
-/* =========================
-CARREGAR DADOS
-========================= */
+let corridasData = [];
+
 async function carregar(){
 
-  const lista = document.getElementById("lista");
   const filtro = document.getElementById("filtro").value.toLowerCase();
 
-  lista.innerHTML = "Carregando...";
-
-  // BUSCAR MOTORISTAS
-  const { data: motoristas } = await supabase
-    .from("motoristas")
-    .select("*");
-
-  motoristasMap = {};
-  motoristas.forEach(m => {
-    motoristasMap[m.id] = m.nome;
-  });
-
-  // BUSCAR CORRIDAS
-  const { data: corridas } = await supabase
+  const { data, error } = await window.supabaseClient
     .from("corridas")
-    .select("*")
+    .select(`
+      id,
+      origem,
+      destino,
+      valor,
+      status,
+      data,
+      motoristas ( nome )
+    `)
     .order("data", { ascending: false });
 
+  if(error){
+    console.log(error);
+    alert("Erro ao carregar corridas");
+    return;
+  }
+
+  corridasData = data;
+
+  const lista = document.getElementById("lista");
   lista.innerHTML = "";
 
-  corridas.forEach(c => {
+  data.forEach(c => {
 
-    const nomeMotorista = motoristasMap[c.motorista_id] || "Desconhecido";
+    const nomeMotorista = c.motoristas?.nome || "Sem motorista";
 
-    if(filtro &&
-      !nomeMotorista.toLowerCase().includes(filtro) &&
-      !(c.grupo || "").toLowerCase().includes(filtro)){
+    if(filtro && !nomeMotorista.toLowerCase().includes(filtro)){
       return;
     }
 
@@ -155,22 +143,22 @@ async function carregar(){
     div.innerHTML = `
       <div class="top">
         <span>${nomeMotorista}</span>
-        <span>R$ ${Number(c.valor).toFixed(2)}</span>
+        <span>R$ ${c.valor}</span>
       </div>
 
       <div>${c.origem} → ${c.destino}</div>
 
-      <div class="small">${c.grupo || "-"}</div>
-
       <div class="small">
+        ${new Date(c.data).toLocaleString()}
+      </div>
+
+      <div class="small ${c.status === "finalizada" ? "status-ok" : "status-bad"}">
         ${c.status === "finalizada" ? "✅ Finalizada" : "❌ Cancelada"}
       </div>
 
-      ${c.status === "cancelada" && c.motivo ? 
-        `<div class="small">Motivo: ${c.motivo}</div>` : ""}
-
-      <button class="btn editar" onclick="editar('${c.id}')">Editar valor</button>
-      <button class="btn excluir" onclick="excluir('${c.id}')">Excluir</button>
+      <button class="btn excluir" onclick="excluir('${c.id}')">
+        Excluir
+      </button>
     `;
 
     lista.appendChild(div);
@@ -179,41 +167,23 @@ async function carregar(){
 
 }
 
-/* =========================
-EXCLUIR
-========================= */
 async function excluir(id){
 
-  if(!confirm("Excluir essa corrida?")) return;
+  if(!confirm("Excluir corrida?")) return;
 
-  await supabase
+  const { error } = await window.supabaseClient
     .from("corridas")
     .delete()
     .eq("id", id);
 
-  carregar();
-}
-
-/* =========================
-EDITAR
-========================= */
-async function editar(id){
-
-  const novoValor = prompt("Novo valor:");
-  if(!novoValor) return;
-
-  await supabase
-    .from("corridas")
-    .update({ valor: Number(novoValor) })
-    .eq("id", id);
+  if(error){
+    alert("Erro ao excluir");
+    return;
+  }
 
   carregar();
 }
 
-/* EVENT */
-document.getElementById("filtro").addEventListener("input", carregar);
-
-/* INIT */
 carregar();
 
 </script>
