@@ -102,9 +102,9 @@ button:active{
 
 <!-- VALORES -->
 <div class="card">
-<div>Base: <span class="valor" id="valorBase">0.00</span></div>
-<div>Noturno: <span class="valor" id="noturno">0.00</span></div>
-<div>Total: <span class="valor" id="total">0.00</span></div>
+<div>Base: R$ <span class="valor" id="valorBase">0.00</span></div>
+<div>Noturno: R$ <span class="valor" id="noturno">0.00</span></div>
+<div>Total: R$ <span class="valor" id="total">0.00</span></div>
 </div>
 
 <!-- TAXAS -->
@@ -116,14 +116,6 @@ button:active{
 <div class="card">
 <input type="date" id="dataViagem">
 <input type="time" id="horaViagem">
-</div>
-
-<!-- NOTURNO -->
-<div class="card">
-<select id="noturnoManual">
-  <option value="nao">Sem adicional noturno</option>
-  <option value="sim">Aplicar adicional noturno</option>
-</select>
 </div>
 
 <!-- MOTORISTA -->
@@ -210,7 +202,7 @@ parada.onchange = ()=>{
   });
 };
 
-/* CALCULAR */
+/* CALCULAR BASE */
 function calcular(){
 
   if(!origem.value || !destino.value) return;
@@ -221,8 +213,8 @@ function calcular(){
     valor = DataManager.buscarValor(origem.value, destino.value);
   }else{
     valor =
-      DataManager.buscarValor(origem.value, paradaSelecionada) +
-      DataManager.buscarValor(paradaSelecionada, destino.value);
+      (DataManager.buscarValor(origem.value, paradaSelecionada) || 0) +
+      (DataManager.buscarValor(paradaSelecionada, destino.value) || 0);
   }
 
   valorBase = valor || 0;
@@ -232,12 +224,21 @@ function calcular(){
   calcularTotal();
 }
 
-/* NOTURNO */
+/* NOTURNO AUTOMÁTICO */
 function calcularNoturno(){
 
-  const manual = noturnoManual.value === "sim";
+  const hora = document.getElementById("horaViagem").value;
 
-  if(!manual) return 0;
+  if(!hora) return 0;
+
+  const [h,m] = hora.split(":").map(Number);
+  const minutos = h * 60 + m;
+
+  const ehNoturno =
+    (minutos >= 1350) || // 22:30+
+    (minutos < 300);     // até 05:00
+
+  if(!ehNoturno) return 0;
 
   if(valorBase <= 24.99){
     return 5;
@@ -266,7 +267,8 @@ async function carregarMotoristas(){
 
   const { data } = await window.supabaseClient
     .from("motoristas")
-    .select("id,nome");
+    .select("id,nome")
+    .order("nome");
 
   data.forEach(m=>{
     motorista.innerHTML += `<option value="${m.id}">${m.nome}</option>`;
@@ -276,6 +278,11 @@ async function carregarMotoristas(){
 
 /* SALVAR */
 async function salvar(){
+
+  if(!dataViagem.value || !horaViagem.value){
+    alert("Preencha data e horário");
+    return;
+  }
 
   const corrida = {
     grupo: grupo.value,
@@ -296,6 +303,7 @@ async function salvar(){
     .insert([corrida]);
 
   if(error){
+    console.log(error);
     alert("Erro ao salvar");
     return;
   }
@@ -309,7 +317,7 @@ async function salvar(){
 origem.onchange = atualizarDestinos;
 destino.onchange = calcular;
 taxas.oninput = calcularTotal;
-noturnoManual.onchange = calcularTotal;
+horaViagem.onchange = calcularTotal;
 
 const valorBaseEl = document.getElementById("valorBase");
 const totalEl = document.getElementById("total");
