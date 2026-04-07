@@ -40,7 +40,7 @@ body{
   border:1px solid #334155;
 }
 
-input, select{
+input{
   width:100%;
   padding:12px;
   margin-bottom:10px;
@@ -58,11 +58,15 @@ button{
   background:#3b82f6;
   color:#fff;
   font-weight:700;
+  margin-top:5px;
 }
 
 .btn-del{
   background:#ef4444;
-  margin-top:8px;
+}
+
+.btn-edit{
+  background:#f59e0b;
 }
 
 .small{
@@ -83,21 +87,17 @@ button{
 <!-- CADASTRO -->
 <div class="card">
 
-<h3>Cadastrar Motorista</h3>
+<h3 id="tituloForm">Cadastrar Motorista</h3>
 
 <input id="nome" placeholder="Nome completo">
 <input id="telefone" placeholder="Telefone">
-
 <input id="endereco" placeholder="Endereço">
 
-<select id="veiculo">
-  <option value="">Tipo de veículo</option>
-  <option>Moto</option>
-  <option>Carro</option>
-  <option>Van</option>
-</select>
+<input id="veiculo" placeholder="Modelo / Marca">
+<input id="cor" placeholder="Cor do veículo">
+<input id="placa" placeholder="Placa">
 
-<button onclick="salvar()">Cadastrar</button>
+<button onclick="salvar()">Salvar</button>
 
 </div>
 
@@ -108,13 +108,20 @@ button{
 
 <script>
 
+let editandoId = null;
+
+/* =========================
+SALVAR OU EDITAR
+========================= */
 async function salvar(){
 
   const data = {
     nome: nome.value.trim(),
     telefone: telefone.value.trim(),
     endereco: endereco.value.trim(),
-    veiculo: veiculo.value
+    veiculo: veiculo.value.trim(),
+    cor: cor.value.trim(),
+    placa: placa.value.trim()
   };
 
   if(!data.nome || !data.telefone){
@@ -122,20 +129,45 @@ async function salvar(){
     return;
   }
 
-  const { error } = await window.supabaseClient
-    .from("motoristas")
-    .insert([data]);
+  if(editandoId){
 
-  if(error){
-    console.log(error);
-    alert("Erro ao salvar");
-    return;
+    const { error } = await window.supabaseClient
+      .from("motoristas")
+      .update(data)
+      .eq("id", editandoId);
+
+    if(error){
+      alert("Erro ao atualizar");
+      return;
+    }
+
+    alert("Motorista atualizado");
+
+    editandoId = null;
+    document.getElementById("tituloForm").innerText = "Cadastrar Motorista";
+
+  }else{
+
+    const { error } = await window.supabaseClient
+      .from("motoristas")
+      .insert([data]);
+
+    if(error){
+      alert("Erro ao salvar");
+      return;
+    }
+
+    alert("Motorista cadastrado");
+
   }
 
-  alert("Motorista cadastrado");
-  location.reload();
+  limpar();
+  carregar();
 }
 
+/* =========================
+CARREGAR LISTA
+========================= */
 async function carregar(){
 
   const { data } = await window.supabaseClient
@@ -156,7 +188,14 @@ async function carregar(){
 
       <div class="small">📞 ${m.telefone || "-"}</div>
       <div class="small">📍 ${m.endereco || "-"}</div>
+
       <div class="small">🚗 ${m.veiculo || "-"}</div>
+      <div class="small">🎨 ${m.cor || "-"}</div>
+      <div class="small">🔖 ${m.placa || "-"}</div>
+
+      <button class="btn-edit" onclick="editar(${JSON.stringify(m).replace(/"/g, '&quot;')})">
+        Editar
+      </button>
 
       <button class="btn-del" onclick="excluir('${m.id}')">
         Excluir
@@ -169,6 +208,30 @@ async function carregar(){
 
 }
 
+/* =========================
+EDITAR
+========================= */
+function editar(m){
+
+  editandoId = m.id;
+
+  nome.value = m.nome || "";
+  telefone.value = m.telefone || "";
+  endereco.value = m.endereco || "";
+
+  veiculo.value = m.veiculo || "";
+  cor.value = m.cor || "";
+  placa.value = m.placa || "";
+
+  document.getElementById("tituloForm").innerText = "Editando Motorista";
+
+  window.scrollTo({ top: 0, behavior: "smooth" });
+
+}
+
+/* =========================
+EXCLUIR
+========================= */
 async function excluir(id){
 
   if(!confirm("Excluir motorista?")) return;
@@ -181,6 +244,19 @@ async function excluir(id){
   carregar();
 }
 
+/* =========================
+LIMPAR
+========================= */
+function limpar(){
+  nome.value = "";
+  telefone.value = "";
+  endereco.value = "";
+  veiculo.value = "";
+  cor.value = "";
+  placa.value = "";
+}
+
+/* START */
 carregar();
 
 </script>
