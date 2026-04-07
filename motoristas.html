@@ -23,6 +23,7 @@ body{
   background:#1e293b;
   text-align:center;
   font-weight:700;
+  font-size:18px;
 }
 
 .container{
@@ -69,20 +70,13 @@ button{
   color:#94a3b8;
 }
 
-.section{
-  margin-top:12px;
-  font-weight:700;
-  font-size:14px;
-  opacity:0.8;
-}
-
 </style>
 
 </head>
 
 <body>
 
-<div class="header">👤 Motoristas</div>
+<div class="header">🚗 Motoristas</div>
 
 <div class="container">
 
@@ -91,33 +85,17 @@ button{
 
 <h3>Cadastrar Motorista</h3>
 
-<div class="section">Dados Pessoais</div>
-
 <input id="nome" placeholder="Nome completo">
-<input id="cpf" placeholder="CPF">
-<input id="rg" placeholder="RG">
+<input id="telefone" placeholder="Telefone">
+
 <input id="endereco" placeholder="Endereço">
 
-<input id="telefone1" placeholder="Telefone principal">
-<input id="telefone2" placeholder="Telefone secundário (opcional)">
-
-<div class="section">Habilitação</div>
-
-<input id="cnh" placeholder="Número da CNH">
-
-<select id="ear">
-  <option value="">EAR na habilitação?</option>
-  <option value="sim">Sim</option>
-  <option value="nao">Não</option>
+<select id="veiculo">
+  <option value="">Tipo de veículo</option>
+  <option>Moto</option>
+  <option>Carro</option>
+  <option>Van</option>
 </select>
-
-<div class="section">Veículo</div>
-
-<input id="modelo" placeholder="Modelo / Marca">
-<input id="ano" placeholder="Ano">
-<input id="chassi" placeholder="Chassi">
-<input id="placa" placeholder="Placa">
-<input id="cor" placeholder="Cor">
 
 <button onclick="salvar()">Cadastrar</button>
 
@@ -134,25 +112,13 @@ async function salvar(){
 
   const data = {
     nome: nome.value.trim(),
-    cpf: cpf.value.trim(),
-    rg: rg.value.trim(),
+    telefone: telefone.value.trim(),
     endereco: endereco.value.trim(),
-
-    telefone1: telefone1.value.trim(),
-    telefone2: telefone2.value.trim(),
-
-    cnh: cnh.value.trim(),
-    ear: ear.value === "sim",
-
-    modelo: modelo.value.trim(),
-    ano: ano.value.trim(),
-    chassi: chassi.value.trim(),
-    placa: placa.value.trim(),
-    cor: cor.value.trim()
+    veiculo: veiculo.value
   };
 
-  if(!data.nome){
-    alert("Nome obrigatório");
+  if(!data.nome || !data.telefone){
+    alert("Preencha nome e telefone");
     return;
   }
 
@@ -188,20 +154,9 @@ async function carregar(){
     div.innerHTML = `
       <strong>${m.nome}</strong>
 
-      <div class="small">CPF: ${m.cpf || "-"}</div>
-      <div class="small">RG: ${m.rg || "-"}</div>
-
-      <div class="small">📞 ${m.telefone1 || "-"}</div>
-      ${m.telefone2 ? `<div class="small">📞 ${m.telefone2}</div>` : ""}
-
-      <div class="small">CNH: ${m.cnh || "-"}</div>
-      <div class="small">EAR: ${m.ear ? "Sim" : "Não"}</div>
-
-      <div class="small">
-        🚗 ${m.modelo || "-"} (${m.ano || "-"})
-      </div>
-
-      <div class="small">Placa: ${m.placa || "-"}</div>
+      <div class="small">📞 ${m.telefone || "-"}</div>
+      <div class="small">📍 ${m.endereco || "-"}</div>
+      <div class="small">🚗 ${m.veiculo || "-"}</div>
 
       <button class="btn-del" onclick="excluir('${m.id}')">
         Excluir
