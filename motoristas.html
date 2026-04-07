@@ -3,7 +3,7 @@
 <head>
 
 <meta charset="UTF-8">
-<title>Painel RF - Motoristas</title>
+<title>RF - Motoristas</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
@@ -14,59 +14,66 @@
 body{
   margin:0;
   font-family:system-ui;
-  background:#0f172a;
+  background:#020617;
   color:#fff;
 }
 
 .header{
-  padding:15px;
-  background:#1e293b;
+  padding:16px;
   text-align:center;
-  font-weight:700;
   font-size:18px;
+  font-weight:700;
+  background:#0f172a;
+  border-bottom:1px solid #1e293b;
 }
 
 .container{
   padding:15px;
-  max-width:600px;
+  max-width:700px;
   margin:auto;
 }
 
 .card{
-  background:#1e293b;
+  background:#0f172a;
   padding:15px;
-  border-radius:12px;
+  border-radius:14px;
   margin-bottom:12px;
-  border:1px solid #334155;
+  border:1px solid #1e293b;
 }
 
 input{
   width:100%;
-  padding:12px;
-  margin-bottom:10px;
+  padding:10px;
+  margin-bottom:6px;
   border-radius:8px;
-  border:1px solid #334155;
-  background:#0f172a;
+  border:1px solid #1e293b;
+  background:#020617;
   color:#fff;
 }
-
-button{
-  width:100%;
-  padding:12px;
-  border:none;
-  border-radius:8px;
-  font-weight:700;
-  margin-top:5px;
-}
-
-.btn-save{ background:#22c55e; color:#000; }
-.btn-del{ background:#ef4444; color:#fff; }
-.btn-edit{ background:#3b82f6; color:#fff; }
 
 .small{
   font-size:13px;
   color:#94a3b8;
 }
+
+.row{
+  display:flex;
+  gap:6px;
+  margin-top:8px;
+}
+
+button{
+  flex:1;
+  padding:10px;
+  border:none;
+  border-radius:8px;
+  font-weight:bold;
+}
+
+.edit{ background:#3b82f6; color:#fff; }
+.save{ background:#22c55e; color:#000; }
+.delete{ background:#ef4444; color:#fff; }
+.cancel{ background:#64748b; color:#fff; }
 
 </style>
 
@@ -74,97 +81,18 @@ button{
 
 <body>
 
-<div class="header">🚗 Motoristas</div>
+<div class="header">🚗 Motoristas RF</div>
 
 <div class="container">
 
-<!-- CADASTRO -->
-<div class="card">
-
-<h3 id="tituloForm">Cadastrar Motorista</h3>
-
-<input id="nome" placeholder="Nome completo">
-<input id="telefone" placeholder="Telefone">
-<input id="endereco" placeholder="Endereço">
-
-<input id="marca" placeholder="Marca">
-<input id="modelo" placeholder="Modelo">
-<input id="cor" placeholder="Cor do veículo">
-<input id="placa" placeholder="Placa">
-
-<button class="btn-save" onclick="salvar()">Salvar</button>
-
-</div>
-
-<!-- LISTA -->
 <div id="lista"></div>
 
 </div>
 
 <script>
 
-let editandoId = null;
-
 /* =========================
-SALVAR / EDITAR
-========================= */
-async function salvar(){
-
-  const data = {
-    nome: nome.value.trim(),
-    telefone: telefone.value.trim(),
-    endereco: endereco.value.trim(),
-    marca: marca.value.trim(),
-    modelo: modelo.value.trim(),
-    cor: cor.value.trim(),
-    placa: placa.value.trim()
-  };
-
-  if(!data.nome || !data.telefone){
-    alert("Preencha nome e telefone");
-    return;
-  }
-
-  if(editandoId){
-
-    const { error } = await window.supabaseClient
-      .from("motoristas")
-      .update(data)
-      .eq("id", editandoId);
-
-    if(error){
-      console.log(error);
-      alert("Erro ao atualizar");
-      return;
-    }
-
-    alert("Motorista atualizado");
-
-    editandoId = null;
-    tituloForm.innerText = "Cadastrar Motorista";
-
-  }else{
-
-    const { error } = await window.supabaseClient
-      .from("motoristas")
-      .insert([data]);
-
-    if(error){
-      console.log(error);
-      alert("Erro ao salvar");
-      return;
-    }
-
-    alert("Motorista cadastrado");
-
-  }
-
-  limpar();
-  carregar();
-}
-
-/* =========================
-CARREGAR
+CARREGAR LISTA
 ========================= */
 async function carregar(){
 
@@ -179,6 +107,14 @@ async function carregar(){
     return;
   }
 
+  render(data);
+}
+
+/* =========================
+RENDER
+========================= */
+function render(data){
+
   lista.innerHTML = "";
 
   data.forEach(m => {
@@ -187,22 +123,35 @@ async function carregar(){
     div.className = "card";
 
     div.innerHTML = `
-      <strong>${m.nome}</strong>
+      <div id="view-${m.id}">
+        <strong>${m.nome}</strong>
 
-      <div class="small">📞 ${m.telefone}</div>
-      <div class="small">📍 ${m.endereco || "-"}</div>
+        <div class="small">📞 ${m.telefone}</div>
+        <div class="small">📍 ${m.endereco || "-"}</div>
+        <div class="small">🚗 ${m.marca || ""} ${m.modelo || ""}</div>
+        <div class="small">🎨 ${m.cor || "-"}</div>
+        <div class="small">🔖 ${m.placa || "-"}</div>
 
-      <div class="small">🚗 ${m.marca || ""} ${m.modelo || ""}</div>
-      <div class="small">🎨 ${m.cor || "-"}</div>
-      <div class="small">🔖 ${m.placa || "-"}</div>
+        <div class="row">
+          <button class="edit" onclick="modoEditar('${m.id}')">Editar</button>
+          <button class="delete" onclick="excluir('${m.id}')">Excluir</button>
+        </div>
+      </div>
 
-      <button class="btn-edit" onclick="editar(${JSON.stringify(m).replace(/"/g,'&quot;')})">
-        Editar
-      </button>
+      <div id="edit-${m.id}" style="display:none;">
+        <input id="nome-${m.id}" value="${m.nome}">
+        <input id="telefone-${m.id}" value="${m.telefone}">
+        <input id="endereco-${m.id}" value="${m.endereco || ""}">
+        <input id="marca-${m.id}" value="${m.marca || ""}">
+        <input id="modelo-${m.id}" value="${m.modelo || ""}">
+        <input id="cor-${m.id}" value="${m.cor || ""}">
+        <input id="placa-${m.id}" value="${m.placa || ""}">
 
-      <button class="btn-del" onclick="excluir('${m.id}')">
-        Excluir
-      </button>
+        <div class="row">
+          <button class="save" onclick="salvarEdicao('${m.id}')">Salvar</button>
+          <button class="cancel" onclick="cancelar('${m.id}')">Cancelar</button>
+        </div>
+      </div>
     `;
 
     lista.appendChild(div);
@@ -212,24 +161,53 @@ async function carregar(){
 }
 
 /* =========================
-EDITAR
+MODO EDITAR
 ========================= */
-function editar(m){
+function modoEditar(id){
+  document.getElementById(`view-${id}`).style.display = "none";
+  document.getElementById(`edit-${id}`).style.display = "block";
+}
 
-  editandoId = m.id;
+/* =========================
+CANCELAR
+========================= */
+function cancelar(id){
+  document.getElementById(`view-${id}`).style.display = "block";
+  document.getElementById(`edit-${id}`).style.display = "none";
+}
 
-  nome.value = m.nome || "";
-  telefone.value = m.telefone || "";
-  endereco.value = m.endereco || "";
+/* =========================
+SALVAR EDIÇÃO
+========================= */
+async function salvarEdicao(id){
 
-  marca.value = m.marca || "";
-  modelo.value = m.modelo || "";
-  cor.value = m.cor || "";
-  placa.value = m.placa || "";
+  const data = {
+    nome: document.getElementById(`nome-${id}`).value.trim(),
+    telefone: document.getElementById(`telefone-${id}`).value.trim(),
+    endereco: document.getElementById(`endereco-${id}`).value.trim(),
+    marca: document.getElementById(`marca-${id}`).value.trim(),
+    modelo: document.getElementById(`modelo-${id}`).value.trim(),
+    cor: document.getElementById(`cor-${id}`).value.trim(),
+    placa: document.getElementById(`placa-${id}`).value.trim()
+  };
 
-  tituloForm.innerText = "Editando Motorista";
+  if(!data.nome || !data.telefone){
+    alert("Nome e telefone obrigatórios");
+    return;
+  }
 
-  window.scrollTo({ top:0, behavior:"smooth" });
+  const { error } = await window.supabaseClient
+    .from("motoristas")
+    .update(data)
+    .eq("id", id);
+
+  if(error){
+    console.log(error);
+    alert("Erro ao salvar");
+    return;
+  }
+
+  carregar();
 }
 
 /* =========================
@@ -251,19 +229,6 @@ async function excluir(id){
   }
 
   carregar();
-}
-
-/* =========================
-LIMPAR
-========================= */
-function limpar(){
-  nome.value = "";
-  telefone.value = "";
-  endereco.value = "";
-  marca.value = "";
-  modelo.value = "";
-  cor.value = "";
-  placa.value = "";
 }
 
 /* START */
