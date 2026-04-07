@@ -274,31 +274,48 @@ async function carregarMotoristas(){
 /* 🔥 SALVAR CORRIDA CORRETO */
 async function salvar(){
 
-  if(!grupo.value){
-    alert("Selecione o grupo");
-    return;
+  const grupo_id = document.getElementById("grupo").value;
+  const motorista_id = document.getElementById("motorista").value;
+  const origem = document.getElementById("origem").value;
+  const destino = document.getElementById("destino").value;
+  const data_viagem = document.getElementById("dataViagem").value;
+  const hora_viagem = document.getElementById("horaViagem").value;
+  const taxas = Number(document.getElementById("taxas").value || 0);
+
+  // 🔥 FORÇA STATUS CORRETO
+  let statusValor = document.getElementById("status");
+
+  let status = "finalizada"; // default
+
+  if(statusValor){
+    status = String(statusValor.value || "finalizada")
+      .toLowerCase()
+      .trim();
   }
 
-  if(!dataViagem.value || !horaViagem.value){
+  const adicional_noturno = Number(document.getElementById("noturno").innerText || 0);
+  const valor = Number(document.getElementById("total").innerText || 0);
+
+  if(!data_viagem || !hora_viagem){
     alert("Preencha data e horário");
     return;
   }
 
   const corrida = {
-    grupo_id: Number(grupo.value), // 🔥 CORRETO
-    motorista_id: motorista.value || null,
-    origem: origem.value,
-    destino: destino.value,
-    valor: Number(totalEl.innerText),
-    status: String(document.getElementById("status").value || "finalizada")
-  .toLowerCase()
-  .trim(),
-    data_viagem: dataViagem.value,
-    hora_viagem: horaViagem.value,
-    taxas: Number(taxas.value || 0),
-    adicional_noturno: Number(noturno.innerText),
+    grupo_id: Number(grupo_id),
+    motorista_id: motorista_id || null,
+    origem,
+    destino,
+    valor,
+    status, // 🔥 AGORA GARANTIDO
+    data_viagem,
+    hora_viagem,
+    taxas,
+    adicional_noturno,
     created_at: new Date().toISOString()
   };
+
+  console.log("SALVANDO:", corrida); // 🔥 DEBUG
 
   const { error } = await window.supabaseClient
     .from("corridas")
@@ -313,7 +330,6 @@ async function salvar(){
   alert("Corrida salva com sucesso");
   location.reload();
 }
-
 /* EVENTOS */
 origem.onchange = atualizarDestinos;
 destino.onchange = calcular;
