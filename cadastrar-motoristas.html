@@ -3,7 +3,7 @@
 <head>
 
 <meta charset="UTF-8">
-<title>RF - Motoristas</title>
+<title>Cadastro Motorista RF</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
@@ -18,69 +18,47 @@ body{
   color:#fff;
 }
 
-/* HEADER */
 .header{
-  padding:16px;
+  padding:15px;
   text-align:center;
-  font-size:18px;
-  font-weight:700;
   background:#0f172a;
-  border-bottom:1px solid #1e293b;
+  font-weight:700;
 }
 
-/* CONTAINER */
 .container{
   padding:15px;
   max-width:600px;
   margin:auto;
 }
 
-/* CARD */
 .card{
   background:#0f172a;
   padding:15px;
-  border-radius:14px;
+  border-radius:12px;
   margin-bottom:12px;
   border:1px solid #1e293b;
 }
 
-/* INPUT */
 input{
   width:100%;
   padding:12px;
   margin-bottom:10px;
-  border-radius:10px;
+  border-radius:8px;
   border:1px solid #1e293b;
   background:#020617;
   color:#fff;
 }
 
-/* BOTÕES */
 button{
   width:100%;
   padding:12px;
   border:none;
-  border-radius:10px;
-  font-weight:700;
-  margin-top:6px;
-}
-
-.btn-save{
+  border-radius:8px;
   background:#22c55e;
   color:#000;
+  font-weight:bold;
 }
 
-.btn-edit{
-  background:#3b82f6;
-  color:#fff;
-}
-
-.btn-del{
-  background:#ef4444;
-  color:#fff;
-}
-
-/* TEXTO */
 .small{
   font-size:13px;
   color:#94a3b8;
@@ -92,40 +70,33 @@ button{
 
 <body>
 
-<div class="header">🚗 Cadastro de Motoristas</div>
+<div class="header">🚗 Novo Motorista</div>
 
 <div class="container">
 
 <!-- FORM -->
 <div class="card">
 
-<h3 id="tituloForm">Novo Motorista</h3>
-
-<input id="nome" placeholder="Nome completo">
+<input id="nome" placeholder="Nome">
 <input id="telefone" placeholder="Telefone">
 <input id="endereco" placeholder="Endereço">
 
-<input id="marca" placeholder="Marca do veículo">
-<input id="modelo" placeholder="Modelo do veículo">
+<input id="marca" placeholder="Marca">
+<input id="modelo" placeholder="Modelo">
 <input id="cor" placeholder="Cor">
 <input id="placa" placeholder="Placa">
 
-<button class="btn-save" onclick="salvar()">Salvar Motorista</button>
+<button onclick="salvar()">Salvar</button>
 
 </div>
 
-<!-- LISTA -->
-<div id="lista"></div>
+<!-- ÚLTIMO CADASTRO -->
+<div id="ultimo"></div>
 
 </div>
 
 <script>
 
-let editandoId = null;
-
-/* =========================
-SALVAR
-========================= */
 async function salvar(){
 
   const data = {
@@ -139,128 +110,51 @@ async function salvar(){
   };
 
   if(!data.nome || !data.telefone){
-    alert("Nome e telefone são obrigatórios");
+    alert("Nome e telefone obrigatórios");
     return;
   }
 
-  if(editandoId){
+  const { error } = await window.supabaseClient
+    .from("motoristas")
+    .insert([data]);
 
-    const { error } = await window.supabaseClient
-      .from("motoristas")
-      .update(data)
-      .eq("id", editandoId);
-
-    if(error){
-      console.log(error);
-      alert("Erro ao atualizar");
-      return;
-    }
-
-    alert("Motorista atualizado");
-
-    editandoId = null;
-    tituloForm.innerText = "Novo Motorista";
-
-  }else{
-
-    const { error } = await window.supabaseClient
-      .from("motoristas")
-      .insert([data]);
-
-    if(error){
-      console.log(error);
-      alert("Erro ao salvar");
-      return;
-    }
-
-    alert("Motorista cadastrado");
-
+  if(error){
+    console.log(error);
+    alert("Erro ao salvar");
+    return;
   }
 
+  alert("Salvo com sucesso");
+
   limpar();
-  carregar();
+  carregarUltimo();
 }
 
 /* =========================
-CARREGAR
+MOSTRAR ÚLTIMO CADASTRO
 ========================= */
-async function carregar(){
+async function carregarUltimo(){
 
   const { data } = await window.supabaseClient
     .from("motoristas")
     .select("*")
-    .order("nome");
+    .order("id", { ascending:false })
+    .limit(1);
 
-  lista.innerHTML = "";
+  if(!data || data.length === 0) return;
 
-  data.forEach(m => {
+  const m = data[0];
 
-    const div = document.createElement("div");
-    div.className = "card";
-
-    div.innerHTML = `
+  ultimo.innerHTML = `
+    <div class="card">
       <strong>${m.nome}</strong>
-
       <div class="small">📞 ${m.telefone}</div>
       <div class="small">📍 ${m.endereco || "-"}</div>
-
-      <div class="small">
-        🚗 ${m.marca || "-"} ${m.modelo || ""}
-      </div>
-
+      <div class="small">🚗 ${m.marca || ""} ${m.modelo || ""}</div>
       <div class="small">🎨 ${m.cor || "-"}</div>
       <div class="small">🔖 ${m.placa || "-"}</div>
-
-      <button class="btn-edit" onclick="editar(${JSON.stringify(m).replace(/"/g,'&quot;')})">
-        Editar
-      </button>
-
-      <button class="btn-del" onclick="excluir('${m.id}')">
-        Excluir
-      </button>
-    `;
-
-    lista.appendChild(div);
-
-  });
-
-}
-
-/* =========================
-EDITAR
-========================= */
-function editar(m){
-
-  editandoId = m.id;
-
-  nome.value = m.nome || "";
-  telefone.value = m.telefone || "";
-  endereco.value = m.endereco || "";
-
-  marca.value = m.marca || "";
-  modelo.value = m.modelo || "";
-  cor.value = m.cor || "";
-  placa.value = m.placa || "";
-
-  tituloForm.innerText = "Editando Motorista";
-
-  window.scrollTo({ top:0, behavior:"smooth" });
-
-}
-
-/* =========================
-EXCLUIR
-========================= */
-async function excluir(id){
-
-  if(!confirm("Excluir motorista?")) return;
-
-  await window.supabaseClient
-    .from("motoristas")
-    .delete()
-    .eq("id", id);
-
-  carregar();
+    </div>
+  `;
 }
 
 /* =========================
@@ -277,7 +171,7 @@ function limpar(){
 }
 
 /* START */
-carregar();
+carregarUltimo();
 
 </script>
 
