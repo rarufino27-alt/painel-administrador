@@ -268,10 +268,22 @@ async function carregarUsuario(){
 
   const { data: { user } } = await window.supabaseClient.auth.getUser();
 
+  let nome = "Admin";
+
   if(user){
-    document.getElementById("usuarioNome").innerText =
-      "Olá, " + (user.email || "Admin");
+    nome = user.email ? user.email.split("@")[0] : "Admin";
   }
+
+  const hora = new Date().getHours();
+
+  let saudacao = "Olá";
+
+  if(hora < 12) saudacao = "Bom dia";
+  else if(hora < 18) saudacao = "Boa tarde";
+  else saudacao = "Boa noite";
+
+  document.getElementById("usuarioNome").innerText =
+    `${saudacao}, ${nome} 👋`;
 
 }
 
