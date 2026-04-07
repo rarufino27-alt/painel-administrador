@@ -8,6 +8,7 @@
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script src="core/supabase.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 
@@ -21,15 +22,28 @@ body{
 .header{
   padding:15px;
   background:#1e293b;
-  text-align:center;
+  border-bottom:1px solid #334155;
+}
+
+.top{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+}
+
+.titulo{
   font-weight:700;
   font-size:18px;
-  border-bottom:1px solid #334155;
+}
+
+.usuario{
+  font-size:14px;
+  color:#94a3b8;
 }
 
 .container{
   padding:15px;
-  max-width:700px;
+  max-width:900px;
   margin:auto;
 }
 
@@ -58,6 +72,10 @@ body{
   color:#22c55e;
 }
 
+canvas{
+  margin-top:10px;
+}
+
 .btn{
   width:100%;
   padding:14px;
@@ -81,7 +99,10 @@ body{
 <body>
 
 <div class="header">
-📊 Painel Administrador RF
+  <div class="top">
+    <div class="titulo">📊 Painel RF</div>
+    <div class="usuario" id="usuarioNome">Olá...</div>
+  </div>
 </div>
 
 <div class="container">
@@ -113,24 +134,17 @@ body{
   <div class="valor" id="topMotorista">-</div>
 </div>
 
+<div class="card full">
+  <div>📈 Corridas por Dia</div>
+  <canvas id="graficoCorridas"></canvas>
 </div>
 
-<button class="btn" onclick="ir('cadastrar.html')">
-➕ Nova Corrida
-</button>
+</div>
 
-<button class="btn" onclick="ir('corridas.html')">
-📋 Corridas
-</button>
-
-<button class="btn" onclick="ir('motoristas.html')">
-👤 Motoristas
-</button>
-
-<button class="btn" onclick="ir('relatorios.html')">
-📊 Relatórios
-</button>
-
+<button class="btn" onclick="ir('cadastrar.html')">➕ Nova Corrida</button>
+<button class="btn" onclick="ir('corridas.html')">📋 Corridas</button>
+<button class="btn" onclick="ir('motoristas.html')">👤 Motoristas</button>
+<button class="btn" onclick="ir('relatorios.html')">📊 Relatórios</button>
 <button class="btn logout" onclick="logout()">Sair</button>
 
 </div>
@@ -138,7 +152,7 @@ body{
 <script>
 
 /* =========================
-PROTEÇÃO LOGIN
+LOGIN
 ========================= */
 if(localStorage.getItem("admin_logado") !== "true"){
   window.location.href = "login.html";
@@ -150,18 +164,29 @@ function logout(){
 }
 
 /* =========================
-CARREGAR DADOS
+NOME DO ADMIN (NOVO)
 ========================= */
+async function carregarUsuario(){
+
+  const { data: { user } } = await window.supabaseClient.auth.getUser();
+
+  if(user){
+    document.getElementById("usuarioNome").innerText =
+      "Olá, " + (user.email || "Admin");
+  }
+
+}
+
+/* =========================
+DASHBOARD
+========================= */
+let chart;
+
 async function carregar(){
 
-  const { data: corridas, error } = await window.supabaseClient
+  const { data: corridas } = await window.supabaseClient
     .from("corridas")
     .select("*");
-
-  if(error){
-    console.log(error);
-    return;
-  }
 
   const { data: motoristas } = await window.supabaseClient
     .from("motoristas")
@@ -175,11 +200,17 @@ async function carregar(){
   let canceladas = 0;
 
   const ranking = {};
+  const porDia = {};
 
   corridas.forEach(c => {
 
+    const data = new Date(c.data).toLocaleDateString();
+
+    if(!porDia[data]) porDia[data] = 0;
+
     if(c.status === "finalizada"){
       faturamento += Number(c.valor);
+      porDia[data]++;
     }else{
       canceladas++;
     }
@@ -212,10 +243,28 @@ async function carregar(){
   document.getElementById("media").innerText = "R$ " + media.toFixed(2);
   document.getElementById("topMotorista").innerText = topNome;
 
+  /* ===== GRÁFICO ===== */
+
+  const labels = Object.keys(porDia);
+  const valores = Object.values(porDia);
+
+  if(chart) chart.destroy();
+
+  chart = new Chart(document.getElementById("graficoCorridas"), {
+    type: "line",
+    data: {
+      labels: labels,
+      datasets: [{
+        label: "Corridas",
+        data: valores
+      }]
+    }
+  });
+
 }
 
 /* =========================
-AUTO ATUALIZAÇÃO
+AUTO UPDATE
 ========================= */
 setInterval(carregar, 5000);
 
@@ -228,6 +277,7 @@ function ir(p){
 
 /* START */
 carregar();
+carregarUsuario();
 
 </script>
 
