@@ -3,18 +3,14 @@
 <head>
 
 <meta charset="UTF-8">
-<title>Painel Administrador RF</title>
+<title>Dashboard RF</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script src="core/supabase.js"></script>
-<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 
-/* =========================
-BASE PREMIUM
-========================= */
 body{
   margin:0;
   font-family:system-ui;
@@ -22,156 +18,54 @@ body{
   color:#e5e7eb;
 }
 
-/* =========================
-HEADER
-========================= */
 .header{
-  padding:18px;
-  background:rgba(15,23,42,.7);
-  backdrop-filter:blur(10px);
-  border-bottom:1px solid rgba(255,255,255,.05);
-}
-
-.top{
-  display:flex;
-  justify-content:space-between;
-  align-items:center;
-}
-
-.titulo{
-  font-size:18px;
-  font-weight:700;
-  display:flex;
-  align-items:center;
-  gap:8px;
-}
-
-.usuario{
-  font-size:13px;
-  color:#94a3b8;
-  margin-top:-2px;
-}
-
-/* MENU */
-.menu-top{
-  display:flex;
-  gap:8px;
-  margin-top:12px;
-}
-
-.menu-btn{
-  flex:1;
-  padding:10px;
-  border-radius:10px;
-  background:rgba(255,255,255,.03);
-  border:1px solid rgba(255,255,255,.05);
+  padding:16px;
   text-align:center;
-  font-size:12px;
-  cursor:pointer;
-  transition:.2s;
+  font-weight:bold;
+  font-size:18px;
+  background:rgba(30,41,59,.8);
 }
 
-.menu-btn:hover{
-  background:rgba(255,255,255,.08);
-}
-
-/* =========================
-CONTAINER
-========================= */
 .container{
   padding:16px;
   max-width:900px;
   margin:auto;
 }
 
-/* =========================
-AÇÕES
-========================= */
-.acoes{
-  display:grid;
-  grid-template-columns:1fr 1fr;
-  gap:12px;
-  margin-bottom:16px;
-}
-
-.acao{
-  padding:18px;
-  border-radius:14px;
-  text-align:center;
-  font-weight:600;
-  cursor:pointer;
-
-  background:linear-gradient(135deg,#1e293b,#020617);
-  border:1px solid rgba(255,255,255,.08);
-
-  transition:.2s;
-}
-
-.acao:hover{
-  transform:translateY(-2px);
-}
-
-/* =========================
-GRID
-========================= */
+/* CARDS */
 .grid{
   display:grid;
   grid-template-columns:1fr 1fr;
-  gap:12px;
+  gap:10px;
 }
 
-/* =========================
-CARDS
-========================= */
 .card{
-  padding:16px;
-  border-radius:16px;
   background:rgba(30,41,59,.6);
-  border:1px solid rgba(255,255,255,.05);
-  backdrop-filter:blur(6px);
+  border-radius:14px;
+  padding:14px;
 }
 
-/* CARD PRINCIPAL */
-.card.destaque{
-  grid-column:1 / -1;
-  background:linear-gradient(135deg,#0f172a,#020617);
-  border:1px solid rgba(34,197,94,.3);
-  box-shadow:0 0 20px rgba(34,197,94,.1);
-}
-
-/* VALORES */
-.valor{
-  font-size:24px;
-  font-weight:bold;
-  margin-top:6px;
-  color:#22c55e;
-}
-
-.label{
-  font-size:13px;
+.titulo{
+  font-size:12px;
   color:#94a3b8;
 }
 
-/* TOP MOTORISTA */
-.top-card{
-  grid-column:1 / -1;
-  text-align:center;
+.valor{
+  font-size:20px;
+  font-weight:bold;
+  color:#22c55e;
 }
 
-/* GRÁFICO */
-.chart-card{
-  grid-column:1 / -1;
+/* LISTAS */
+.lista{
+  margin-top:10px;
 }
 
-/* =========================
-ANIMAÇÃO
-========================= */
-.card, .acao{
-  transition:.2s;
-}
-
-.card:hover{
-  transform:translateY(-2px);
+.item{
+  display:flex;
+  justify-content:space-between;
+  padding:8px;
+  border-bottom:1px solid rgba(255,255,255,.05);
 }
 
 </style>
@@ -180,206 +74,149 @@ ANIMAÇÃO
 
 <body>
 
-<div class="header">
-
-  <div class="top" style="flex-direction:column; align-items:flex-start; gap:4px;">
-
-  <div class="titulo">🚖 Painel RF</div>
-
-  <div class="usuario" id="usuarioNome">
-    Olá...
-  </div>
-
-</div>
-
-  <div class="menu-top">
-    <div class="menu-btn" onclick="ir('corridas.html')">Corridas</div>
-    <div class="menu-btn" onclick="ir('motoristas.html')">Motoristas</div>
-    <div class="menu-btn" onclick="ir('relatorios.html')">Relatórios</div>
-    <div class="menu-btn" onclick="logout()">Sair</div>
-  </div>
-
-</div>
+<div class="header">📊 Dashboard RF</div>
 
 <div class="container">
 
-<!-- AÇÕES -->
-<div class="acoes">
-  <div class="acao" onclick="ir('cadastrar.html')">
-    ➕ Nova Corrida
-  </div>
-
-  <div class="acao" onclick="ir('motoristas.html')">
-    👤 Cadastrar Motorista
-  </div>
-</div>
-
-<!-- DASH -->
+<!-- RESUMO -->
 <div class="grid">
+  <div class="card">
+    <div class="titulo">Faturamento Total</div>
+    <div class="valor" id="total">R$ 0</div>
+  </div>
 
-<div class="card destaque">
-  <div class="label">Faturamento Total</div>
-  <div class="valor" id="faturamento">R$ 0</div>
+  <div class="card">
+    <div class="titulo">Corridas</div>
+    <div class="valor" id="qtd">0</div>
+  </div>
+
+  <div class="card">
+    <div class="titulo">Hoje</div>
+    <div class="valor" id="hoje">R$ 0</div>
+  </div>
+
+  <div class="card">
+    <div class="titulo">Mês</div>
+    <div class="valor" id="mes">R$ 0</div>
+  </div>
 </div>
 
+<!-- POR GRUPO -->
 <div class="card">
-  <div class="label">Total Corridas</div>
-  <div class="valor" id="totalCorridas">0</div>
+  <div class="titulo">Faturamento por Grupo</div>
+  <div id="porGrupo" class="lista"></div>
 </div>
 
+<!-- POR MOTORISTA -->
 <div class="card">
-  <div class="label">Canceladas</div>
-  <div class="valor" id="canceladas">0</div>
-</div>
-
-<div class="card">
-  <div class="label">Média</div>
-  <div class="valor" id="media">R$ 0</div>
-</div>
-
-<div class="card top-card">
-  <div class="label">🏆 Top Motorista</div>
-  <div class="valor" id="topMotorista">-</div>
-</div>
-
-<div class="card chart-card">
-  <div class="label">📈 Corridas por Dia</div>
-  <canvas id="graficoCorridas"></canvas>
-</div>
-
+  <div class="titulo">Ranking Motoristas</div>
+  <div id="porMotorista" class="lista"></div>
 </div>
 
 </div>
 
 <script>
 
-/* LOGIN */
-if(localStorage.getItem("admin_logado") !== "true"){
-  window.location.href = "login.html";
-}
-
-function logout(){
-  localStorage.removeItem("admin_logado");
-  window.location.href = "login.html";
-}
-
-/* USUÁRIO */
-async function carregarUsuario(){
-
-  const { data: { user } } = await window.supabaseClient.auth.getUser();
-
-  let nome = "Admin";
-
-  if(user){
-    nome = user.email ? user.email.split("@")[0] : "Admin";
-  }
-
-  const hora = new Date().getHours();
-
-  let saudacao = "Olá";
-
-  if(hora < 12) saudacao = "Bom dia";
-  else if(hora < 18) saudacao = "Boa tarde";
-  else saudacao = "Boa noite";
-
-  document.getElementById("usuarioNome").innerText =
-    `${saudacao}, ${nome} 👋`;
-
-}
-
-/* DASHBOARD */
-let chart;
-
 async function carregar(){
 
-  const { data: corridas } = await window.supabaseClient
+  const { data, error } = await window.supabaseClient
     .from("corridas")
-    .select("*");
+    .select(`
+      valor,
+      data_viagem,
+      grupos(nome),
+      motoristas(nome)
+    `)
+    .eq("status","finalizada");
 
-  const { data: motoristas } = await window.supabaseClient
-    .from("motoristas")
-    .select("id, nome");
+  if(error){
+    console.log(error);
+    alert("Erro ao carregar");
+    return;
+  }
 
-  const map = {};
-  motoristas.forEach(m => map[m.id] = m.nome);
+  calcular(data);
+}
 
-  let total = corridas.length;
-  let faturamento = 0;
-  let canceladas = 0;
+/* PROCESSAMENTO */
+function calcular(corridas){
 
-  const ranking = {};
-  const porDia = {};
+  let total = 0;
+  let hoje = 0;
+  let mes = 0;
+
+  let porGrupo = {};
+  let porMotorista = {};
+
+  const hojeStr = new Date().toISOString().split("T")[0];
+  const mesAtual = hojeStr.slice(0,7);
 
   corridas.forEach(c => {
 
-    const data = new Date(c.data_viagem).toLocaleDateString();
+    const valor = Number(c.valor) || 0;
+    total += valor;
 
-    if(!porDia[data]) porDia[data] = 0;
-
-    if(c.status === "finalizada"){
-      faturamento += Number(c.valor);
-      porDia[data]++;
-    }else{
-      canceladas++;
+    if(c.data_viagem === hojeStr){
+      hoje += valor;
     }
 
-    if(!ranking[c.motorista_id]){
-      ranking[c.motorista_id] = 0;
+    if(c.data_viagem?.startsWith(mesAtual)){
+      mes += valor;
     }
 
-    if(c.status === "finalizada"){
-      ranking[c.motorista_id]++;
-    }
+    /* GRUPOS */
+    const grupo = c.grupos?.nome || "Sem grupo";
+    porGrupo[grupo] = (porGrupo[grupo] || 0) + valor;
+
+    /* MOTORISTA */
+    const motorista = c.motoristas?.nome || "Sem motorista";
+    porMotorista[motorista] = (porMotorista[motorista] || 0) + valor;
 
   });
 
-  let topNome = "-";
-  let topQtd = 0;
+  /* UI */
+  document.getElementById("total").innerText = format(total);
+  document.getElementById("qtd").innerText = corridas.length;
+  document.getElementById("hoje").innerText = format(hoje);
+  document.getElementById("mes").innerText = format(mes);
 
-  for(let id in ranking){
-    if(ranking[id] > topQtd){
-      topQtd = ranking[id];
-      topNome = `${map[id] || "Desconhecido"} (${topQtd})`;
-    }
+  renderLista("porGrupo", porGrupo);
+  renderLista("porMotorista", porMotorista, true);
+
+}
+
+/* RENDER LISTAS */
+function renderLista(id, obj, ordenar=false){
+
+  const el = document.getElementById(id);
+  el.innerHTML = "";
+
+  let entries = Object.entries(obj);
+
+  if(ordenar){
+    entries.sort((a,b)=>b[1]-a[1]);
   }
 
-  const media = total ? faturamento / total : 0;
-
-  document.getElementById("totalCorridas").innerText = total;
-  document.getElementById("canceladas").innerText = canceladas;
-  document.getElementById("faturamento").innerText = "R$ " + faturamento.toFixed(2);
-  document.getElementById("media").innerText = "R$ " + media.toFixed(2);
-  document.getElementById("topMotorista").innerText = topNome;
-
-  const labels = Object.keys(porDia);
-  const valores = Object.values(porDia);
-
-  if(chart) chart.destroy();
-
-  chart = new Chart(document.getElementById("graficoCorridas"), {
-    type: "line",
-    data: {
-      labels: labels,
-      datasets: [{
-        label: "Corridas",
-        data: valores
-      }]
-    }
+  entries.forEach(([nome, valor])=>{
+    el.innerHTML += `
+      <div class="item">
+        <span>${nome}</span>
+        <strong>${format(valor)}</strong>
+      </div>
+    `;
   });
 
 }
 
-/* AUTO UPDATE */
-setInterval(carregar, 5000);
-
-/* NAV */
-function ir(p){
-  window.location.href = p;
+/* FORMATAR */
+function format(v){
+  return "R$ " + v.toFixed(2);
 }
 
-/* START */
+/* AUTO REFRESH */
+setInterval(carregar, 5000);
+
 carregar();
-carregarUsuario();
 
 </script>
 
