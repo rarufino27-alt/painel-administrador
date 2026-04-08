@@ -137,123 +137,76 @@ let valorBase = 0;
 let origemSelecionada = null;
 let paradaSelecionada = null;
 
-/* INIT */
+/* =========================
+CRIA SELECT PESQUISÁVEL
+========================= */
+
+function criarSelectBusca(inputId, listaFn, onSelect){
+
+  const input = document.getElementById(inputId);
+
+  const dropdown = document.createElement("div");
+  dropdown.style.background = "#020617";
+  dropdown.style.border = "1px solid rgba(255,255,255,.1)";
+  dropdown.style.borderRadius = "10px";
+  dropdown.style.maxHeight = "150px";
+  dropdown.style.overflowY = "auto";
+  dropdown.style.marginBottom = "10px";
+
+  input.parentNode.insertBefore(dropdown, input.nextSibling);
+
+  input.oninput = ()=>{
+
+    const termo = normalizar(input.value);
+    const lista = listaFn();
+
+    dropdown.innerHTML = "";
+
+    lista
+      .filter(item => normalizar(item).includes(termo))
+      .forEach(item => {
+
+        const opt = document.createElement("div");
+        opt.innerText = item;
+        opt.style.padding = "10px";
+        opt.style.cursor = "pointer";
+
+        opt.onclick = ()=>{
+          input.value = item;
+          dropdown.innerHTML = "";
+          onSelect(item);
+        };
+
+        dropdown.appendChild(opt);
+
+      });
+
+  };
+
+}
+
+/* =========================
+INIT
+========================= */
+
 async function iniciar(){
   await DataManager.carregar();
-  popularOrigens();
   carregarMotoristas();
   carregarGrupos();
 
-  ativarBuscas(); // 🔥 NOVO
-}
-
-/* =========================
-BUSCAS INTELIGENTES
-========================= */
-
-function ativarBuscas(){
-
-  const buscaOrigem = document.getElementById("buscaOrigem");
-  const buscaDestino = document.getElementById("buscaDestino");
-  const buscaParada = document.getElementById("buscaParada");
-
-  if(buscaOrigem){
-    buscaOrigem.oninput = () => {
-
-      const termo = normalizar(buscaOrigem.value);
-      const origens = DataManager.listarOrigens();
-
-      origem.innerHTML = '<option value="">Selecione origem</option>';
-
-      origens
-        .filter(o => normalizar(o).includes(termo))
-        .forEach(o=>{
-          origem.innerHTML += `<option value="${o}">${o}</option>`;
-        });
-
-    };
-  }
-
-  if(buscaDestino){
-    buscaDestino.oninput = () => {
-
-      if(!origemSelecionada) return;
-
-      const termo = normalizar(buscaDestino.value);
-      const destinos = DataManager.listarDestinos(origemSelecionada);
-
-      destino.innerHTML = '<option value="">Selecione destino</option>';
-
-      destinos
-        .filter(d => normalizar(d).includes(termo))
-        .forEach(d=>{
-          destino.innerHTML += `<option value="${d}">${d}</option>`;
-        });
-
-    };
-  }
-
-  if(buscaParada){
-    buscaParada.oninput = () => {
-
-      if(!origemSelecionada) return;
-
-      const termo = normalizar(buscaParada.value);
-      const destinos = DataManager.listarDestinos(origemSelecionada);
-
-      parada.innerHTML = '<option value="">Selecione parada</option>';
-
-      destinos
-        .filter(d => normalizar(d).includes(termo))
-        .forEach(d=>{
-          parada.innerHTML += `<option value="${d}">${d}</option>`;
-        });
-
-    };
-  }
-
-}
-
-/* =========================
-GRUPOS
-========================= */
-
-async function carregarGrupos(){
-
-  const select = document.getElementById("grupo");
-
-  const { data, error } = await window.supabaseClient
-    .from("grupos")
-    .select("id,nome")
-    .eq("ativo", true)
-    .order("nome");
-
-  if(error){
-    console.error(error);
-    select.innerHTML = '<option>Erro ao carregar</option>';
-    return;
-  }
-
-  select.innerHTML = '<option value="">Selecione o grupo</option>';
-
-  data.forEach(g=>{
-    select.innerHTML += `<option value="${g.id}">${g.nome}</option>`;
+  criarSelectBusca("origem", () => DataManager.listarOrigens(), (val)=>{
+    origemSelecionada = val;
+    atualizarDestinos();
   });
 
-}
-
-/* =========================
-ORIGENS
-========================= */
-
-function popularOrigens(){
-  const origens = DataManager.listarOrigens();
-
-  origem.innerHTML = '<option value="">Selecione origem</option>';
-
-  origens.forEach(o=>{
-    origem.innerHTML += `<option value="${o}">${o}</option>`;
+  criarSelectBusca("destino", () => {
+    if(!origemSelecionada) return [];
+    return DataManager.listarDestinos(origemSelecionada);
+  }, (val)=>{
+    destino.value = val;
+    calcular();
   });
+
 }
 
 /* =========================
@@ -261,22 +214,7 @@ DESTINOS
 ========================= */
 
 function atualizarDestinos(){
-
-  origemSelecionada = origem.value;
-
-  parada.style.display = "none";
-  document.getElementById("buscaParada").style.display = "none";
-
   paradaSelecionada = null;
-
-  const destinos = DataManager.listarDestinos(origemSelecionada);
-
-  destino.innerHTML = '<option value="">Selecione destino</option>';
-
-  destinos.forEach(d=>{
-    destino.innerHTML += `<option value="${d}">${d}</option>`;
-  });
-
 }
 
 /* =========================
@@ -288,31 +226,14 @@ function ativarParada(){
   if(!origemSelecionada) return alert("Selecione origem");
 
   parada.style.display = "block";
-  document.getElementById("buscaParada").style.display = "block";
 
-  const destinos = DataManager.listarDestinos(origemSelecionada);
-
-  parada.innerHTML = '<option value="">Selecione parada</option>';
-
-  destinos.forEach(d=>{
-    parada.innerHTML += `<option value="${d}">${d}</option>`;
+  criarSelectBusca("parada", () => {
+    return DataManager.listarDestinos(origemSelecionada);
+  }, (val)=>{
+    paradaSelecionada = val;
   });
 
 }
-
-parada.onchange = ()=>{
-
-  paradaSelecionada = parada.value;
-
-  const destinos = DataManager.listarDestinos(paradaSelecionada);
-
-  destino.innerHTML = '<option value="">Selecione destino</option>';
-
-  destinos.forEach(d=>{
-    destino.innerHTML += `<option value="${d}">${d}</option>`;
-  });
-
-};
 
 /* =========================
 CALCULO
@@ -320,20 +241,22 @@ CALCULO
 
 function calcular(){
 
-  if(!origem.value || !destino.value) return;
+  const origemVal = document.getElementById("origem").value;
+  const destinoVal = document.getElementById("destino").value;
+
+  if(!origemVal || !destinoVal) return;
 
   let valor = 0;
 
   if(!paradaSelecionada){
-    valor = DataManager.buscarValor(origem.value, destino.value);
+    valor = DataManager.buscarValor(origemVal, destinoVal);
   }else{
     valor =
-      (DataManager.buscarValor(origem.value, paradaSelecionada) || 0) +
-      (DataManager.buscarValor(paradaSelecionada, destino.value) || 0);
+      (DataManager.buscarValor(origemVal, paradaSelecionada) || 0) +
+      (DataManager.buscarValor(paradaSelecionada, destinoVal) || 0);
   }
 
   valorBase = valor || 0;
-
   valorBaseEl.innerText = valorBase.toFixed(2);
 
   calcularTotal();
@@ -393,52 +316,43 @@ async function carregarMotoristas(){
 }
 
 /* =========================
+GRUPOS
+========================= */
+
+async function carregarGrupos(){
+
+  const { data } = await window.supabaseClient
+    .from("grupos")
+    .select("id,nome")
+    .eq("ativo", true)
+    .order("nome");
+
+  grupo.innerHTML = '<option value="">Selecione o grupo</option>';
+
+  data.forEach(g=>{
+    grupo.innerHTML += `<option value="${g.id}">${g.nome}</option>`;
+  });
+}
+
+/* =========================
 SALVAR
 ========================= */
 
 async function salvar(){
 
-  const grupo_id = document.getElementById("grupo").value;
-  const motorista_id = document.getElementById("motorista").value;
-  const origem = document.getElementById("origem").value;
-  const destino = document.getElementById("destino").value;
-  const data_viagem = document.getElementById("dataViagem").value;
-  const hora_viagem = document.getElementById("horaViagem").value;
-  const taxas = Number(document.getElementById("taxas").value || 0);
-
-  let statusValor = document.getElementById("status");
-
-  let status = "finalizada";
-
-  if(statusValor){
-    status = String(statusValor.value || "finalizada")
-      .toLowerCase()
-      .trim();
-  }
-
-  const adicional_noturno = Number(document.getElementById("noturno").innerText || 0);
-  const valor = Number(document.getElementById("total").innerText || 0);
-
-  if(!data_viagem || !hora_viagem){
-    alert("Preencha data e horário");
-    return;
-  }
-
   const corrida = {
-    grupo_id: Number(grupo_id),
-    motorista_id: motorista_id || null,
-    origem,
-    destino,
-    valor,
-    status,
-    data_viagem,
-    hora_viagem,
-    taxas,
-    adicional_noturno,
+    grupo_id: Number(grupo.value),
+    motorista_id: motorista.value || null,
+    origem: origem.value,
+    destino: destino.value,
+    valor: Number(totalEl.innerText || 0),
+    status: status.value,
+    data_viagem: dataViagem.value,
+    hora_viagem: horaViagem.value,
+    taxas: Number(taxas.value || 0),
+    adicional_noturno: Number(noturno.innerText || 0),
     created_at: new Date().toISOString()
   };
-
-  console.log("SALVANDO:", corrida);
 
   const { error } = await window.supabaseClient
     .from("corridas")
@@ -450,18 +364,9 @@ async function salvar(){
     return;
   }
 
-  alert("Corrida salva com sucesso");
+  alert("Corrida salva");
   location.reload();
 }
-
-/* EVENTOS */
-origem.onchange = atualizarDestinos;
-destino.onchange = calcular;
-taxas.oninput = calcularTotal;
-horaViagem.onchange = calcularTotal;
-
-const valorBaseEl = document.getElementById("valorBase");
-const totalEl = document.getElementById("total");
 
 /* START */
 iniciar();
