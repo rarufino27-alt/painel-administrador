@@ -410,15 +410,16 @@ const taxas = Number(document.getElementById("taxas").value || 0);
   }
 
   const corrida = {
-    motorista_id,
-    origem,
-    destino,
-    valor: Number(document.getElementById("total").innerText),
-    status,
-    data_viagem: dataInput.value,
-    hora_viagem: horaInput.value,
-    created_at: new Date().toISOString()
-  };
+  motorista_id,
+  origem,
+  destino,
+  valor: Number(document.getElementById("total").innerText),
+  status,
+  data_viagem: dataInput.value,
+  hora_viagem: horaInput.value,
+  taxas, // 🔥 NOVO
+  created_at: new Date().toISOString()
+};
 
   console.log("SALVANDO:", corrida);
 
