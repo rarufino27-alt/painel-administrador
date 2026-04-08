@@ -74,12 +74,15 @@ button:active{
 <!-- ROTA -->
 <div class="card">
 
+<input id="buscaOrigem" placeholder="Buscar origem...">
 <select id="origem"></select>
 
 <button onclick="ativarParada()">+ Adicionar parada</button>
 
+<input id="buscaParada" placeholder="Buscar parada..." style="display:none">
 <select id="parada" style="display:none"></select>
 
+<input id="buscaDestino" placeholder="Buscar destino...">
 <select id="destino"></select>
 
 </div>
@@ -122,6 +125,14 @@ button:active{
 
 <script>
 
+function normalizar(texto){
+  return texto
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-z0-9\s]/g, "");
+}
+
 let valorBase = 0;
 let origemSelecionada = null;
 let paradaSelecionada = null;
@@ -131,10 +142,82 @@ async function iniciar(){
   await DataManager.carregar();
   popularOrigens();
   carregarMotoristas();
-  carregarGrupos(); // 🔥 NOVO
+  carregarGrupos();
+
+  ativarBuscas(); // 🔥 NOVO
 }
 
-/* 🔥 CARREGAR GRUPOS DO SUPABASE */
+/* =========================
+BUSCAS INTELIGENTES
+========================= */
+
+function ativarBuscas(){
+
+  const buscaOrigem = document.getElementById("buscaOrigem");
+  const buscaDestino = document.getElementById("buscaDestino");
+  const buscaParada = document.getElementById("buscaParada");
+
+  if(buscaOrigem){
+    buscaOrigem.oninput = () => {
+
+      const termo = normalizar(buscaOrigem.value);
+      const origens = DataManager.listarOrigens();
+
+      origem.innerHTML = '<option value="">Selecione origem</option>';
+
+      origens
+        .filter(o => normalizar(o).includes(termo))
+        .forEach(o=>{
+          origem.innerHTML += `<option value="${o}">${o}</option>`;
+        });
+
+    };
+  }
+
+  if(buscaDestino){
+    buscaDestino.oninput = () => {
+
+      if(!origemSelecionada) return;
+
+      const termo = normalizar(buscaDestino.value);
+      const destinos = DataManager.listarDestinos(origemSelecionada);
+
+      destino.innerHTML = '<option value="">Selecione destino</option>';
+
+      destinos
+        .filter(d => normalizar(d).includes(termo))
+        .forEach(d=>{
+          destino.innerHTML += `<option value="${d}">${d}</option>`;
+        });
+
+    };
+  }
+
+  if(buscaParada){
+    buscaParada.oninput = () => {
+
+      if(!origemSelecionada) return;
+
+      const termo = normalizar(buscaParada.value);
+      const destinos = DataManager.listarDestinos(origemSelecionada);
+
+      parada.innerHTML = '<option value="">Selecione parada</option>';
+
+      destinos
+        .filter(d => normalizar(d).includes(termo))
+        .forEach(d=>{
+          parada.innerHTML += `<option value="${d}">${d}</option>`;
+        });
+
+    };
+  }
+
+}
+
+/* =========================
+GRUPOS
+========================= */
+
 async function carregarGrupos(){
 
   const select = document.getElementById("grupo");
@@ -159,55 +242,82 @@ async function carregarGrupos(){
 
 }
 
-/* ORIGENS */
+/* =========================
+ORIGENS
+========================= */
+
 function popularOrigens(){
   const origens = DataManager.listarOrigens();
+
   origem.innerHTML = '<option value="">Selecione origem</option>';
+
   origens.forEach(o=>{
     origem.innerHTML += `<option value="${o}">${o}</option>`;
   });
 }
 
-/* DESTINOS */
+/* =========================
+DESTINOS
+========================= */
+
 function atualizarDestinos(){
+
   origemSelecionada = origem.value;
+
   parada.style.display = "none";
+  document.getElementById("buscaParada").style.display = "none";
+
   paradaSelecionada = null;
 
   const destinos = DataManager.listarDestinos(origemSelecionada);
 
   destino.innerHTML = '<option value="">Selecione destino</option>';
+
   destinos.forEach(d=>{
     destino.innerHTML += `<option value="${d}">${d}</option>`;
   });
+
 }
 
-/* PARADA */
+/* =========================
+PARADA
+========================= */
+
 function ativarParada(){
+
   if(!origemSelecionada) return alert("Selecione origem");
 
   parada.style.display = "block";
+  document.getElementById("buscaParada").style.display = "block";
 
   const destinos = DataManager.listarDestinos(origemSelecionada);
 
   parada.innerHTML = '<option value="">Selecione parada</option>';
+
   destinos.forEach(d=>{
     parada.innerHTML += `<option value="${d}">${d}</option>`;
   });
+
 }
 
 parada.onchange = ()=>{
+
   paradaSelecionada = parada.value;
 
   const destinos = DataManager.listarDestinos(paradaSelecionada);
 
   destino.innerHTML = '<option value="">Selecione destino</option>';
+
   destinos.forEach(d=>{
     destino.innerHTML += `<option value="${d}">${d}</option>`;
   });
+
 };
 
-/* CALCULO */
+/* =========================
+CALCULO
+========================= */
+
 function calcular(){
 
   if(!origem.value || !destino.value) return;
@@ -229,7 +339,10 @@ function calcular(){
   calcularTotal();
 }
 
-/* NOTURNO */
+/* =========================
+NOTURNO
+========================= */
+
 function calcularNoturno(){
 
   const hora = horaViagem.value;
@@ -245,7 +358,10 @@ function calcularNoturno(){
   return valorBase <= 24.99 ? 5 : valorBase * 0.35;
 }
 
-/* TOTAL */
+/* =========================
+TOTAL
+========================= */
+
 function calcularTotal(){
 
   const taxasVal = Number(taxas.value || 0);
@@ -258,7 +374,10 @@ function calcularTotal(){
   totalEl.innerText = total.toFixed(2);
 }
 
-/* MOTORISTAS */
+/* =========================
+MOTORISTAS
+========================= */
+
 async function carregarMotoristas(){
 
   const { data } = await window.supabaseClient
@@ -266,12 +385,17 @@ async function carregarMotoristas(){
     .select("id,nome")
     .order("nome");
 
+  motorista.innerHTML = '<option value="">Selecione o motorista</option>';
+
   data.forEach(m=>{
     motorista.innerHTML += `<option value="${m.id}">${m.nome}</option>`;
   });
 }
 
-/* 🔥 SALVAR CORRIDA CORRETO */
+/* =========================
+SALVAR
+========================= */
+
 async function salvar(){
 
   const grupo_id = document.getElementById("grupo").value;
@@ -282,10 +406,9 @@ async function salvar(){
   const hora_viagem = document.getElementById("horaViagem").value;
   const taxas = Number(document.getElementById("taxas").value || 0);
 
-  // 🔥 FORÇA STATUS CORRETO
   let statusValor = document.getElementById("status");
 
-  let status = "finalizada"; // default
+  let status = "finalizada";
 
   if(statusValor){
     status = String(statusValor.value || "finalizada")
@@ -307,7 +430,7 @@ async function salvar(){
     origem,
     destino,
     valor,
-    status, // 🔥 AGORA GARANTIDO
+    status,
     data_viagem,
     hora_viagem,
     taxas,
@@ -315,7 +438,7 @@ async function salvar(){
     created_at: new Date().toISOString()
   };
 
-  console.log("SALVANDO:", corrida); // 🔥 DEBUG
+  console.log("SALVANDO:", corrida);
 
   const { error } = await window.supabaseClient
     .from("corridas")
@@ -330,6 +453,7 @@ async function salvar(){
   alert("Corrida salva com sucesso");
   location.reload();
 }
+
 /* EVENTOS */
 origem.onchange = atualizarDestinos;
 destino.onchange = calcular;
