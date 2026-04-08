@@ -3,268 +3,261 @@
 <head>
 
 <meta charset="UTF-8">
-<title>Nova Corrida</title>
+<title>Nova Corrida RF</title>
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
+<script src="core/datamanager.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js"></script>
 <script src="core/supabase.js"></script>
-<script src="core/datamanager.js"></script>
+
+<link rel="stylesheet" href="theme/theme.css">
+<link rel="stylesheet" href="theme/layout.css">
+<link rel="stylesheet" href="theme/components.css">
 
 <style>
+
 body{
-  margin:0;
-  font-family:system-ui;
-  background: radial-gradient(circle at top,#0b1220,#020617);
+  background:#0f172a;
   color:#e5e7eb;
-  padding:16px;
 }
-.card{
-  background:rgba(30,41,59,.6);
-  border:1px solid rgba(255,255,255,.05);
-  border-radius:16px;
+
+.card-modern{
+  background:#1e293b;
+  border:1px solid #334155;
+  border-radius:14px;
   padding:14px;
   margin-bottom:12px;
 }
-input, select{
-  width:100%;
-  padding:12px;
+
+.input-box{
+  padding:14px;
   border-radius:10px;
-  border:1px solid rgba(255,255,255,.08);
+  margin-bottom:8px;
   background:#020617;
-  color:#fff;
-  margin-bottom:10px;
+  border:1px solid #334155;
+  cursor:pointer;
 }
-h2{
-  text-align:center;
-  margin-bottom:16px;
+
+.input-box.green{ border-left:4px solid #22c55e; }
+.input-box.yellow{ border-left:4px solid #facc15; }
+.input-box.red{ border-left:4px solid #ef4444; }
+
+.cta-box{
+  position:fixed;
+  bottom:0;
+  width:100%;
+  padding:10px;
+  background:#020617;
+  border-top:1px solid #334155;
 }
-.valor{
-  font-size:18px;
-  color:#22c55e;
-  font-weight:bold;
-}
-button{
+
+.cta-box button{
   width:100%;
   padding:16px;
   border:none;
   border-radius:12px;
-  background:linear-gradient(135deg,#22c55e,#16a34a);
+  background:#22c55e;
   font-weight:bold;
-  font-size:16px;
-  color:#000;
 }
-button:active{
-  transform:scale(0.97);
+
+/* MODAL */
+.modal{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.8);
+  display:none;
+  align-items:center;
+  justify-content:center;
 }
+
+.modal-content{
+  width:90%;
+  max-width:400px;
+  background:#020617;
+  padding:16px;
+  border-radius:12px;
+}
+
+.lista div{
+  padding:10px;
+  border-bottom:1px solid #334155;
+  cursor:pointer;
+}
+
 </style>
 
 </head>
 
 <body>
 
-<h2>🚗 Nova Corrida</h2>
+<div class="app-container">
 
-<!-- GRUPO DINÂMICO -->
-<div class="card">
-<select id="grupo">
-  <option value="">Carregando grupos...</option>
-</select>
+<div class="card-modern">
+
+<div class="input-box green" id="origemBtn">
+  <div id="origemTexto">Selecionar origem</div>
 </div>
 
-<!-- ROTA -->
-<div class="card">
+<div class="input-box yellow" id="paradaBtn" style="display:none">
+  <div id="paradaTexto">Selecionar parada</div>
+</div>
 
-<input id="buscaOrigem" placeholder="Buscar origem...">
-<select id="origem"></select>
-
-<button onclick="ativarParada()">+ Adicionar parada</button>
-
-<input id="buscaParada" placeholder="Buscar parada..." style="display:none">
-<select id="parada" style="display:none"></select>
-
-<input id="buscaDestino" placeholder="Buscar destino...">
-<select id="destino"></select>
+<div class="input-box red" id="destinoBtn">
+  <div id="destinoTexto">Selecionar destino</div>
+</div>
 
 </div>
 
-<!-- VALORES -->
-<div class="card">
-<div>Base: R$ <span class="valor" id="valorBase">0.00</span></div>
-<div>Noturno: R$ <span class="valor" id="noturno">0.00</span></div>
-<div>Total: R$ <span class="valor" id="total">0.00</span></div>
+<div class="card-modern">
+  <div>Base: R$ <span id="valorBase">0.00</span></div>
+  <div>Noturno: R$ <span id="noturno">0.00</span></div>
+  <div>Total: R$ <span id="total">0.00</span></div>
 </div>
 
-<!-- TAXAS -->
-<div class="card">
-<input id="taxas" type="number" placeholder="Taxas adicionais">
+<div class="card-modern">
+  <input type="date" id="dataViagem">
+  <input type="time" id="horaViagem">
 </div>
 
-<!-- DATA + HORA -->
-<div class="card">
-<input type="date" id="dataViagem">
-<input type="time" id="horaViagem">
+<div class="card-modern">
+  <select id="motorista"></select>
 </div>
 
-<!-- MOTORISTA -->
-<div class="card">
-<select id="motorista">
-  <option value="">Selecione o motorista</option>
-</select>
+<div class="card-modern">
+  <select id="status">
+    <option value="finalizada">Finalizada</option>
+    <option value="cancelada">Cancelada</option>
+    <option value="nao_atendida">Não atendida</option>
+  </select>
 </div>
 
-<!-- STATUS -->
-<div class="card">
-<select id="status">
-  <option value="finalizada">Finalizada</option>
-  <option value="cancelada">Cancelada</option>
-  <option value="nao_atendida">Não atendida</option>
-</select>
 </div>
 
-<button onclick="salvar()">Salvar Corrida</button>
+<div class="cta-box">
+  <button onclick="salvar()">Salvar Corrida</button>
+</div>
+
+<!-- MODAL -->
+<div class="modal" id="modal">
+  <div class="modal-content">
+    <input type="text" id="busca" placeholder="Buscar...">
+    <div class="lista" id="lista"></div>
+  </div>
+</div>
 
 <script>
 
-function normalizar(texto){
-  return texto
-    .toLowerCase()
-    .normalize("NFD")
-    .replace(/[\u0300-\u036f]/g, "")
-    .replace(/[^a-z0-9\s]/g, "");
-}
-
-let valorBase = 0;
-let origemSelecionada = null;
-let paradaSelecionada = null;
-
-/* =========================
-CRIA SELECT PESQUISÁVEL
-========================= */
-
-function criarSelectBusca(inputId, listaFn, onSelect){
-
-  const input = document.getElementById(inputId);
-
-  const dropdown = document.createElement("div");
-  dropdown.style.background = "#020617";
-  dropdown.style.border = "1px solid rgba(255,255,255,.1)";
-  dropdown.style.borderRadius = "10px";
-  dropdown.style.maxHeight = "150px";
-  dropdown.style.overflowY = "auto";
-  dropdown.style.marginBottom = "10px";
-
-  input.parentNode.insertBefore(dropdown, input.nextSibling);
-
-  input.oninput = ()=>{
-
-    const termo = normalizar(input.value);
-    const lista = listaFn();
-
-    dropdown.innerHTML = "";
-
-    lista
-      .filter(item => normalizar(item).includes(termo))
-      .forEach(item => {
-
-        const opt = document.createElement("div");
-        opt.innerText = item;
-        opt.style.padding = "10px";
-        opt.style.cursor = "pointer";
-
-        opt.onclick = ()=>{
-          input.value = item;
-          dropdown.innerHTML = "";
-          onSelect(item);
-        };
-
-        dropdown.appendChild(opt);
-
-      });
-
-  };
-
-}
-
-/* =========================
-INIT
-========================= */
+let origem=null;
+let destino=null;
+let parada=null;
+let modo=null;
+let listaAtual=[];
 
 async function iniciar(){
   await DataManager.carregar();
   carregarMotoristas();
-  carregarGrupos();
-
-  criarSelectBusca("origem", () => DataManager.listarOrigens(), (val)=>{
-    origemSelecionada = val;
-    atualizarDestinos();
-  });
-
-  criarSelectBusca("destino", () => {
-    if(!origemSelecionada) return [];
-    return DataManager.listarDestinos(origemSelecionada);
-  }, (val)=>{
-    destino.value = val;
-    calcular();
-  });
-
 }
 
-/* =========================
-DESTINOS
-========================= */
+function abrirModal(tipo){
 
-function atualizarDestinos(){
-  paradaSelecionada = null;
-}
+  modo = tipo;
+  busca.value = "";
 
-/* =========================
-PARADA
-========================= */
+  let dados = [];
 
-function ativarParada(){
+  if(tipo==="origem") dados = DataManager.listarOrigens();
 
-  if(!origemSelecionada) return alert("Selecione origem");
-
-  parada.style.display = "block";
-
-  criarSelectBusca("parada", () => {
-    return DataManager.listarDestinos(origemSelecionada);
-  }, (val)=>{
-    paradaSelecionada = val;
-  });
-
-}
-
-/* =========================
-CALCULO
-========================= */
-
-function calcular(){
-
-  const origemVal = document.getElementById("origem").value;
-  const destinoVal = document.getElementById("destino").value;
-
-  if(!origemVal || !destinoVal) return;
-
-  let valor = 0;
-
-  if(!paradaSelecionada){
-    valor = DataManager.buscarValor(origemVal, destinoVal);
-  }else{
-    valor =
-      (DataManager.buscarValor(origemVal, paradaSelecionada) || 0) +
-      (DataManager.buscarValor(paradaSelecionada, destinoVal) || 0);
+  if(tipo==="parada"){
+    if(!origem) return alert("Selecione origem");
+    dados = DataManager.listarDestinos(origem);
   }
 
+  if(tipo==="destino"){
+    if(!origem) return alert("Selecione origem");
+    dados = parada
+      ? DataManager.listarDestinos(parada)
+      : DataManager.listarDestinos(origem);
+  }
+
+  listaAtual = dados;
+  renderLista(dados);
+  modal.style.display="flex";
+}
+
+function renderLista(arr){
+  lista.innerHTML="";
+  arr.forEach(item=>{
+    const div=document.createElement("div");
+    div.innerText=item;
+    div.onclick=()=>{
+      selecionar(item);
+      modal.style.display="none";
+    };
+    lista.appendChild(div);
+  });
+}
+
+/* 🔥 BUSCA INTELIGENTE */
+busca.addEventListener("input",()=>{
+  const termo = busca.value
+    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "");
+
+  renderLista(
+    listaAtual.filter(i =>
+      i.toLowerCase()
+       .normalize("NFD")
+       .replace(/[\u0300-\u036f]/g, "")
+       .includes(termo)
+    )
+  );
+});
+
+function selecionar(valor){
+
+  if(modo==="origem"){
+    origem=valor;
+    parada=null;
+    destino=null;
+    origemTexto.innerText=valor;
+    destinoTexto.innerText="Selecionar destino";
+  }
+
+  if(modo==="parada"){
+    parada=valor;
+    paradaTexto.innerText=valor;
+  }
+
+  if(modo==="destino"){
+    destino=valor;
+    destinoTexto.innerText=valor;
+  }
+
+  calcular();
+}
+
+/* EVENTOS */
+origemBtn.onclick=()=>abrirModal("origem");
+destinoBtn.onclick=()=>abrirModal("destino");
+paradaBtn.onclick=()=>abrirModal("parada");
+
+/* CALCULO */
+function calcular(){
+
+  if(!origem || !destino) return;
+
+  let valor = !parada
+    ? DataManager.buscarValor(origem,destino)
+    : (DataManager.buscarValor(origem,parada)||0) +
+      (DataManager.buscarValor(parada,destino)||0);
+
   valorBase = valor || 0;
-  valorBaseEl.innerText = valorBase.toFixed(2);
+
+  document.getElementById("valorBase").innerText = valorBase.toFixed(2);
 
   calcularTotal();
 }
-
-/* =========================
-NOTURNO
-========================= */
 
 function calcularNoturno(){
 
@@ -272,103 +265,73 @@ function calcularNoturno(){
   if(!hora) return 0;
 
   const [h,m] = hora.split(":").map(Number);
-  const minutos = h * 60 + m;
+  const min = h*60+m;
 
-  const ehNoturno = (minutos >= 1350) || (minutos < 300);
+  if(min>=1350 || min<300){
+    return valorBase <= 24.99 ? 5 : valorBase*0.35;
+  }
 
-  if(!ehNoturno) return 0;
-
-  return valorBase <= 24.99 ? 5 : valorBase * 0.35;
+  return 0;
 }
-
-/* =========================
-TOTAL
-========================= */
 
 function calcularTotal(){
 
-  const taxasVal = Number(taxas.value || 0);
   const noturnoVal = calcularNoturno();
 
-  noturno.innerText = noturnoVal.toFixed(2);
+  document.getElementById("noturno").innerText = noturnoVal.toFixed(2);
 
-  const total = valorBase + taxasVal + noturnoVal;
+  const total = valorBase + noturnoVal;
 
-  totalEl.innerText = total.toFixed(2);
+  document.getElementById("total").innerText = total.toFixed(2);
 }
 
-/* =========================
-MOTORISTAS
-========================= */
-
+/* MOTORISTAS */
 async function carregarMotoristas(){
 
   const { data } = await window.supabaseClient
     .from("motoristas")
-    .select("id,nome")
-    .order("nome");
+    .select("id,nome");
 
-  motorista.innerHTML = '<option value="">Selecione o motorista</option>';
+  motorista.innerHTML = '<option value="">Nenhum</option>';
 
   data.forEach(m=>{
     motorista.innerHTML += `<option value="${m.id}">${m.nome}</option>`;
   });
 }
 
-/* =========================
-GRUPOS
-========================= */
-
-async function carregarGrupos(){
-
-  const { data } = await window.supabaseClient
-    .from("grupos")
-    .select("id,nome")
-    .eq("ativo", true)
-    .order("nome");
-
-  grupo.innerHTML = '<option value="">Selecione o grupo</option>';
-
-  data.forEach(g=>{
-    grupo.innerHTML += `<option value="${g.id}">${g.nome}</option>`;
-  });
-}
-
-/* =========================
-SALVAR
-========================= */
-
+/* SALVAR */
 async function salvar(){
 
-  const corrida = {
-    grupo_id: Number(grupo.value),
-    motorista_id: motorista.value || null,
-    origem: origem.value,
-    destino: destino.value,
-    valor: Number(totalEl.innerText || 0),
-    status: status.value,
-    data_viagem: dataViagem.value,
-    hora_viagem: horaViagem.value,
-    taxas: Number(taxas.value || 0),
-    adicional_noturno: Number(noturno.innerText || 0),
-    created_at: new Date().toISOString()
-  };
+  const motorista_id = motorista.value || null;
+
+  let status = document.getElementById("status").value;
+
+  if(!motorista_id){
+    status = "nao_atendida";
+  }
 
   const { error } = await window.supabaseClient
     .from("corridas")
-    .insert([corrida]);
+    .insert([{
+      motorista_id,
+      origem,
+      destino,
+      valor: Number(total.innerText),
+      status,
+      data_viagem: dataViagem.value,
+      hora_viagem: horaViagem.value
+    }]);
 
   if(error){
     console.log(error);
-    alert("Erro ao salvar");
+    alert("Erro");
     return;
   }
 
-  alert("Corrida salva");
+  alert("Salvo com sucesso");
   location.reload();
 }
 
-/* START */
 iniciar();
 
 </script>
